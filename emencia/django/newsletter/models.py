@@ -265,8 +265,8 @@ class Newsletter(models.Model):
 
 class Link(models.Model):
     """Link sended in a newsletter"""
-    title = models.CharField(_('title'), max_length=255)
-    url = models.CharField(_('url'), max_length=255)
+    title = models.CharField(_('title'), max_length=2000)
+    url = models.CharField(_('url'), max_length=2000)
 
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
 
