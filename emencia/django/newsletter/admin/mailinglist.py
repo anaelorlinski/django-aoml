@@ -28,7 +28,7 @@ class MailingListAdmin(admin.ModelAdmin):
     list_editable = ('name', 'description')
     list_filter = ('creation_date', 'modification_date')
     search_fields = ('name', 'description',)
-    filter_horizontal = ['subscribers', 'unsubscribers']
+    raw_id_fields = ('subscribers', 'unsubscribers')
     fieldsets = ((None, {'fields': ('name', 'description',)}),
                  (None, {'fields': ('subscribers',)}),
                  (None, {'fields': ('unsubscribers',)}),
