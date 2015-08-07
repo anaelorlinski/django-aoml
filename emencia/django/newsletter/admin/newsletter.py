@@ -173,7 +173,13 @@ if USE_TINYMCE:
 
     class NewsletterTinyMCEForm(forms.ModelForm):
         content = forms.CharField(
-            widget=TinyMCE(attrs={'cols': 150, 'rows': 80}))
+            widget=TinyMCE(
+                attrs={'cols': 150, 'rows': 80},
+                mce_attrs={
+                    'schema': 'html4',
+                    'valid_children': "+body[style]"
+                }
+            ))
 
         class Meta:
             model = Newsletter
