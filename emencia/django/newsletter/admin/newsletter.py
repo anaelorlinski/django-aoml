@@ -177,7 +177,8 @@ if USE_TINYMCE:
                 attrs={'cols': 150, 'rows': 80},
                 mce_attrs={
                     'schema': 'html4',
-                    'valid_children': "+body[style]"
+                    'valid_children': "+body[style]",
+                    'valid_elements': "*[*]"
                 }
             ))
 
