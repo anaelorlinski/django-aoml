@@ -23,6 +23,7 @@ class SMTPServerAdminForm(forms.ModelForm):
 
     class Meta:
         model = SMTPServer
+        fields = '__all__'
 
 
 class SMTPServerAdmin(admin.ModelAdmin):
