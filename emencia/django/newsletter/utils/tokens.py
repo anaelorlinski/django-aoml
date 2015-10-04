@@ -13,9 +13,9 @@ class ContactTokenGenerator(object):
 
     def make_token(self, contact):
         """Method for generating the token"""
-        from django.utils.hashcompat import sha_constructor
+        from hashlib import sha1
 
-        token = sha_constructor(settings.SECRET_KEY + unicode(contact.id) +
+        token = sha1(settings.SECRET_KEY + unicode(contact.id) +
                                 contact.email).hexdigest()[::2]
         return token
 
