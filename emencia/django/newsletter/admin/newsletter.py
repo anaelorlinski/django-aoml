@@ -174,7 +174,7 @@ if USE_TINYMCE:
     class NewsletterTinyMCEForm(forms.ModelForm):
         content = forms.CharField(
             widget=TinyMCE(
-                attrs={'cols': 150, 'rows': 80},
+                attrs={'cols': 30, 'rows': 30},
                 mce_attrs={
                     'schema': 'html4',
                     'valid_children': "+body[style]",
@@ -184,6 +184,7 @@ if USE_TINYMCE:
 
         class Meta:
             model = Newsletter
+            exclude = ('',)
 
     class NewsletterAdmin(BaseNewsletterAdmin):
         form = NewsletterTinyMCEForm
