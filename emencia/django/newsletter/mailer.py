@@ -9,7 +9,7 @@ from StringIO import StringIO
 from datetime import datetime
 from datetime import timedelta
 from smtplib import SMTPRecipientsRefused
-
+from django.utils import timezone
 try:
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -195,7 +195,7 @@ class NewsLetterSender(object):
         if self.test:
             return True
 
-        if self.newsletter.sending_date <= datetime.now() and \
+        if self.newsletter.sending_date <= timezone.now() and \
                (self.newsletter.status == Newsletter.WAITING or \
                 self.newsletter.status == Newsletter.SENDING):
             return True
@@ -316,7 +316,7 @@ class SMTPMailer(object):
     smtp = None
 
     def __init__(self, server, test=False, verbose=0):
-        self.start = datetime.now()
+        self.start = timezone.now()
         self.server = server
         self.test = test
         self.verbose = verbose
