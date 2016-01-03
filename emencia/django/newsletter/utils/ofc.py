@@ -13,7 +13,7 @@
 
 import copy
 
-from django.utils.simplejson import dumps
+from json import dumps
 
 
 class Chart(dict):
