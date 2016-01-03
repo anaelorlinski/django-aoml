@@ -4,7 +4,7 @@ from django.db import models
 
 class ContactManager(models.Manager):
     """Manager for the contacts"""
-
+    use_for_related_fields = True
     def subscribers(self):
         """Return all subscribers"""
         return self.get_query_set().filter(subscriber=True)
