@@ -1,27 +1,35 @@
 """Tokens system for emencia.django.newsletter"""
-from django.conf import settings
 from django.http import Http404
+from django.utils import six
 from django.utils.http import int_to_base36, base36_to_int
-
 from emencia.django.newsletter.models import Contact
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.crypto import salted_hmac
 
 
-class ContactTokenGenerator(object):
+class ContactTokenGenerator(PasswordResetTokenGenerator):
+
     """ContactTokengenerator for the newsletter
     based on the PasswordResetTokenGenerator bundled
     in django.contrib.auth"""
 
-    def make_token(self, contact):
-        """Method for generating the token"""
-        from hashlib import sha1
+    def _make_token_with_timestamp(self, user, timestamp):
+        # timestamp is number of days since 2001-1-1.  Converted to
+        # base 36, this gives us a 3 digit string until about 2121
+        ts_b36 = int_to_base36(timestamp)
 
-        token = sha1(settings.SECRET_KEY + unicode(contact.id) +
-                                contact.email).hexdigest()[::2]
-        return token
+        # By hashing on the internal state of the user and using state
+        # that is sure to change (the password salt will change as soon as
+        # the password is set, at least for current Django auth, and
+        # last_login will also change), we produce a hash that will be
+        # invalid as soon as it is used.
+        # We limit the hash to 20 chars to keep URL short
+        key_salt = "django.contrib.auth.tokens.PasswordResetTokenGenerator"
 
-    def check_token(self, contact, token):
-        """Check if the token is correct for this user"""
-        return token == self.make_token(contact)
+        value = (six.text_type(user.pk) +
+                 user.email + six.text_type(timestamp))
+        hash = salted_hmac(key_salt, value).hexdigest()[::2]
+        return "%s-%s" % (ts_b36, hash)
 
 
 def tokenize(contact):

@@ -37,6 +37,6 @@ def vcard_contacts_export_response(contacts, filename=''):
     filename = filename.replace(' ', '_')
 
     response = HttpResponse(vcard_contacts_export(contacts),
-                            mimetype='text/x-vcard')
+                            content_type='text/x-vcard')
     response['Content-Disposition'] = 'attachment; filename=%s.vcf' % filename
     return response

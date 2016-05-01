@@ -780,7 +780,7 @@ msgstr "Informace nedostupné."
 
 #: templates/newsletter/cms/subscription_form.html:8
 msgid "You have successfully subscribed to the mailing list!"
-msgstr "Byl jste odhlášen od odběru."
+msgstr "Byl jste příhlášen k odběru."
 
 #: utils/importation.py:52
 #, python-format

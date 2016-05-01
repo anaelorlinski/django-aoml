@@ -9,7 +9,7 @@ from StringIO import StringIO
 from datetime import datetime
 from datetime import timedelta
 from smtplib import SMTPRecipientsRefused
-from django.utils import timezone
+
 try:
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -31,6 +31,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.utils.encoding import smart_str
 from django.utils.encoding import smart_unicode
+from django.conf import settings
 
 from emencia.django.newsletter.models import Newsletter
 from emencia.django.newsletter.models import ContactMailingStatus
@@ -195,7 +196,12 @@ class NewsLetterSender(object):
         if self.test:
             return True
 
-        if self.newsletter.sending_date <= timezone.now() and \
+        if settings.USE_TZ:
+            from django.utils.timezone import utc
+            now = datetime.utcnow().replace(tzinfo=utc)
+        else:
+            now = datetime.now()
+        if self.newsletter.sending_date <= now and \
                (self.newsletter.status == Newsletter.WAITING or \
                 self.newsletter.status == Newsletter.SENDING):
             return True
@@ -316,7 +322,7 @@ class SMTPMailer(object):
     smtp = None
 
     def __init__(self, server, test=False, verbose=0):
-        self.start = timezone.now()
+        self.start = datetime.now()
         self.server = server
         self.test = test
         self.verbose = verbose

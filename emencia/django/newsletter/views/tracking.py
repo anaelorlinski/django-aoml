@@ -34,7 +34,7 @@ def view_newsletter_tracking(request, slug, uidb36, token, format):
                                         contact=contact,
                                         status=ContactMailingStatus.OPENED)
     return HttpResponse(base64.b64decode(TRACKING_IMAGE),
-                        mimetype='image/%s' % format)
+                        content_type='image/%s' % format)
 
 
 def view_newsletter_tracking_link(request, slug, uidb36, token, link_id):

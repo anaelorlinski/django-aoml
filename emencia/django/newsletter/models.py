@@ -1,6 +1,4 @@
 """Models for emencia.django.newsletter"""
-from smtplib import SMTP
-from smtplib import SMTPHeloError
 from datetime import datetime
 from datetime import timedelta
 
@@ -21,20 +19,9 @@ from emencia.django.newsletter.settings import DEFAULT_HEADER_REPLY
 from emencia.django.newsletter.settings import DEFAULT_HEADER_SENDER
 from emencia.django.newsletter.utils.vcard import vcard_contact_export
 
-# Patch for Python < 2.6
-try:
-    getattr(SMTP, 'ehlo_or_helo_if_needed')
-except AttributeError:
-    def ehlo_or_helo_if_needed(self):
-        if self.helo_resp is None and self.ehlo_resp is None:
-            if not (200 <= self.ehlo()[0] <= 299):
-                (code, resp) = self.helo()
-                if not (200 <= code <= 299):
-                    raise SMTPHeloError(code, resp)
-    SMTP.ehlo_or_helo_if_needed = ehlo_or_helo_if_needed
-
 
 class SMTPServer(models.Model):
+
     """Configuration of a SMTP server"""
     name = models.CharField(_('name'), max_length=255)
     host = models.CharField(_('server host'), max_length=255)
@@ -44,23 +31,29 @@ class SMTPServer(models.Model):
                                 help_text=_('Leave it empty if the host is public.'))
     port = models.IntegerField(_('server port'), default=25)
     tls = models.BooleanField(_('server use TLS'))
+    ssl = models.BooleanField(_('server use SSL'), default=True)
 
     headers = models.TextField(_('custom headers'), blank=True,
-                               help_text=_('key1: value1 key2: value2, splitted by return line.\n'\
+                               help_text=_('key1: value1 key2: value2, splitted by return line.\n'
                                            'Useful for passing some tracking headers if your provider allows it.'))
     mails_hour = models.IntegerField(_('mails per hour'), default=0)
 
     def connect(self):
         """Connect the SMTP Server"""
-        smtp = SMTP(smart_str(self.host), int(self.port))
-        smtp.ehlo_or_helo_if_needed()
-        if self.tls:
-            smtp.starttls()
-            smtp.ehlo_or_helo_if_needed()
 
-        if self.user or self.password:
-            smtp.login(smart_str(self.user), smart_str(self.password))
-        return smtp
+        from django.core.mail.backends.smtp import EmailBackend
+
+        smtp = EmailBackend(
+            host=smart_str(self.host),
+            port=int(self.port),
+            username=smart_str(self.user),
+            password=smart_str(self.password),
+            use_tls=self.tls,
+            use_ssl=self.ssl,
+        )
+        smtp.open()
+
+        return smtp.connection
 
     def delay(self):
         """compute the delay (in seconds) between mails to ensure mails
@@ -106,10 +99,11 @@ class SMTPServer(models.Model):
 
 
 class Contact(models.Model):
+
     """Contact for emailing"""
     email = models.EmailField(_('email'), unique=True)
-    first_name = models.CharField(_('first name'), max_length=50, blank=True)
-    last_name = models.CharField(_('last name'), max_length=50, blank=True)
+    first_name = models.CharField(_('first name'), max_length=50, blank=True, null=True)
+    last_name = models.CharField(_('last name'), max_length=50, blank=True, null=True)
 
     subscriber = models.BooleanField(_('subscriber'), default=True)
     valid = models.BooleanField(_('valid email'), default=True)
@@ -138,7 +132,12 @@ class Contact(models.Model):
 
     def mail_format(self):
         if self.first_name and self.last_name:
-            return '%s %s <%s>' % (self.last_name, self.first_name, self.email)
+            # return '%s %s <%s>' % (self.last_name, self.first_name, self.email)
+            return '"%s %s" <%s>' % (
+                unicode(self.last_name).encode('utf-8'),
+                unicode(self.first_name).encode('utf-8'),
+                unicode(self.email).encode('utf-8')
+            )
         return self.email
     mail_format.short_description = _('mail format')
 
@@ -163,6 +162,7 @@ class Contact(models.Model):
 
 
 class MailingList(models.Model):
+
     """Mailing list"""
     name = models.CharField(_('name'), max_length=255)
     description = models.TextField(_('description'), blank=True)
@@ -171,7 +171,7 @@ class MailingList(models.Model):
                                          related_name='mailinglist_subscriber')
     unsubscribers = models.ManyToManyField(Contact, verbose_name=_('unsubscribers'),
                                            related_name='mailinglist_unsubscriber',
-                                           null=True, blank=True)
+                                           blank=True)
 
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
     modification_date = models.DateTimeField(_('modification date'), auto_now=True)
@@ -199,6 +199,7 @@ class MailingList(models.Model):
 
 
 class Newsletter(models.Model):
+
     """Newsletter to be sended to contacts"""
     DRAFT = 0
     WAITING = 1
@@ -214,14 +215,14 @@ class Newsletter(models.Model):
                       )
 
     title = models.CharField(_('title'), max_length=255,
-                             help_text=_('You can use the "{{ UNIQUE_KEY }}" variable ' \
+                             help_text=_('You can use the "{{ UNIQUE_KEY }}" variable '
                                          'for unique identifier within the newsletter\'s title.'))
     content = models.TextField(_('content'), help_text=_('Or paste an URL.'),
                                default=_('<body>\n<!-- Edit your newsletter here -->\n</body>'))
 
     mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'))
     test_contacts = models.ManyToManyField(Contact, verbose_name=_('test contacts'),
-                                           blank=True, null=True)
+                                           blank=True)
 
     server = models.ForeignKey(SMTPServer, verbose_name=_('smtp server'),
                                default=1)
@@ -264,6 +265,7 @@ class Newsletter(models.Model):
 
 
 class Link(models.Model):
+
     """Link sended in a newsletter"""
     title = models.CharField(_('title'), max_length=2000)
     url = models.CharField(_('url'), max_length=2000)
@@ -282,12 +284,14 @@ class Link(models.Model):
         verbose_name_plural = _('links')
 
 
-class Attachment(models.Model):
-    """Attachment file in a newsletter"""
+def get_newsletter_storage_path(instance, filename):
+    filename = force_unicode(filename)
+    return '/'.join([BASE_PATH, instance.newsletter.slug, filename])
 
-    def get_newsletter_storage_path(self, filename):
-        filename = force_unicode(filename)
-        return '/'.join([BASE_PATH, self.newsletter.slug, filename])
+
+class Attachment(models.Model):
+
+    """Attachment file in a newsletter"""
 
     newsletter = models.ForeignKey(Newsletter, verbose_name=_('newsletter'))
     title = models.CharField(_('title'), max_length=255)
@@ -306,6 +310,7 @@ class Attachment(models.Model):
 
 
 class ContactMailingStatus(models.Model):
+
     """Status of the reception"""
     SENT_TEST = -1
     SENT = 0
@@ -346,16 +351,17 @@ class ContactMailingStatus(models.Model):
 
 
 class WorkGroup(models.Model):
+
     """Work Group for privatization of the ressources"""
     name = models.CharField(_('name'), max_length=255)
     group = models.ForeignKey(Group, verbose_name=_('permissions group'))
 
     contacts = models.ManyToManyField(Contact, verbose_name=_('contacts'),
-                                      blank=True, null=True)
+                                      blank=True)
     mailinglists = models.ManyToManyField(MailingList, verbose_name=_('mailing lists'),
-                                          blank=True, null=True)
+                                          blank=True)
     newsletters = models.ManyToManyField(Newsletter, verbose_name=_('newsletters'),
-                                         blank=True, null=True)
+                                         blank=True)
 
     def __unicode__(self):
         return self.name

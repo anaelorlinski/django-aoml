@@ -183,6 +183,7 @@ if USE_TINYMCE:
             ))
 
         class Meta:
+            fields = '__all__'
             model = Newsletter
             exclude = ('',)
 

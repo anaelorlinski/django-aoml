@@ -23,8 +23,8 @@ class MailingListSubscriptionForm(forms.ModelForm):
         data = self.cleaned_data
         contact, created = Contact.objects.get_or_create(
             email=data['email'],
-            defaults={'first_name': data['first_name'],
-                      'last_name': data['last_name']})
+            defaults={'first_name': data.get('first_name', None),
+                      'last_name': data.get('last_name', None)})
 
         mailing_list.subscribers.add(contact)
         mailing_list.unsubscribers.remove(contact)
@@ -40,16 +40,21 @@ class AllMailingListSubscriptionForm(MailingListSubscriptionForm):
 
     mailing_lists = forms.ModelMultipleChoiceField(
         queryset=MailingList.objects.all(),
-        initial=[obj.id for obj in MailingList.objects.all()],
+        initial=[],
         label=_('Mailing lists'),
-        widget=forms.CheckboxSelectMultiple())
+        widget=forms.MultipleHiddenInput(attrs={"checked": ""}))
+
+    def __init__(self, *args, **kwargs):
+        super(AllMailingListSubscriptionForm, self).__init__(*args, **kwargs)
+        self.fields['mailing_lists'].initial = [obj.id
+                                                for obj in MailingList.objects.all()]
 
     def save(self, mailing_list):
         data = self.cleaned_data
         contact, created = Contact.objects.get_or_create(
             email=data['email'],
-            defaults={'first_name': data['first_name'],
-                      'last_name': data['last_name']})
+            defaults={'first_name': data.get('first_name', None),
+                      'last_name': data.get('last_name', None)})
 
         for mailing_list in data['mailing_lists']:
             mailing_list.subscribers.add(contact)

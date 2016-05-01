@@ -85,7 +85,7 @@ def view_newsletter_report(request, slug):
         return [smart_str(contact.first_name), smart_str(contact.last_name),
                 smart_str(contact.email), openings] + link_cols
 
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=report-%s.csv' % newsletter.slug
 
     writer = csv.writer(response)
