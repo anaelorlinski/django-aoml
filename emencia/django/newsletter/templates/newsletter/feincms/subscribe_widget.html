@@ -1,0 +1,7 @@
+{% load i18n %}
+{% trans "Subscribe" as default_title %}
+<div>
+  <h3>{{ content.title | default:default_title }}</h3>
+  <p>{ content.mailing_list.name }}</p>
+  <a href="{{ content.subscribe_url }}">{% trans 'Subscribe' %}</a>
+</div>
