@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.encoding import smart_str
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Group
 from django.utils.encoding import force_unicode
@@ -112,7 +112,7 @@ class Contact(models.Model):
 
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
     modification_date = models.DateTimeField(_('modification date'), auto_now=True)

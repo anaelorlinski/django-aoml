@@ -4,6 +4,8 @@ SITE_ID = 1
 
 USE_I18N = False
 
+SECRET_KEY = 'secret_key'
+
 ROOT_URLCONF = 'emencia.django.newsletter.urls'
 
 DATABASES = {'default': {'NAME': 'newsletter_tests.db',
@@ -14,3 +16,5 @@ INSTALLED_APPS = ['django.contrib.contenttypes',
                   'django.contrib.auth',
                   'tagging',
                   'emencia.django.newsletter']
+
+TESTING = True
