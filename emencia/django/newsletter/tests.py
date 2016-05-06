@@ -1,6 +1,7 @@
 """Unit tests for emencia.django.newsletter"""
 from datetime import datetime
 from datetime import timedelta
+import smtplib
 from tempfile import NamedTemporaryFile
 
 from django.test import TestCase
@@ -37,14 +38,26 @@ class FakeSMTP(object):
         pass
 
 
+class FakeSMTPRefuse(object):
+    mails_sent = 0
+
+    def sendmail(self, *ka, **kw):
+        raise smtplib.SMTPRecipientsRefused('')
+
+    def quit(*ka, **kw):
+        pass
+
+
 class SMTPServerTestCase(TestCase):
     """Tests for the SMTPServer model"""
 
     def setUp(self):
         self.server = SMTPServer.objects.create(name='Test SMTP',
-                                                host='smtp.domain.com')
+                                                host='smtp.domain.com',
+                                                tls=False)
         self.server_2 = SMTPServer.objects.create(name='Test SMTP 2',
-                                                  host='smtp.domain2.com')
+                                                  host='smtp.domain2.com',
+                                                  tls=False)
         self.contact = Contact.objects.create(email='test@domain.com')
         self.mailinglist = MailingList.objects.create(name='Test MailingList')
         self.mailinglist.subscribers.add(self.contact)
@@ -117,7 +130,7 @@ class ContactTestCase(TestCase):
         contact = Contact(email='test@domain.com', first_name='Toto')
         self.assertEquals(contact.mail_format(), 'test@domain.com')
         contact = Contact(email='test@domain.com', first_name='Toto', last_name='Titi')
-        self.assertEquals(contact.mail_format(), 'Titi Toto <test@domain.com>')
+        self.assertEquals(contact.mail_format(), '"Titi Toto" <test@domain.com>')
 
     def test_vcard_format(self):
         contact = Contact(email='test@domain.com', first_name='Toto', last_name='Titi')
@@ -182,7 +195,8 @@ class NewsletterTestCase(TestCase):
 
     def setUp(self):
         self.server = SMTPServer.objects.create(name='Test SMTP',
-                                                host='smtp.domain.com')
+                                                host='smtp.domain.com',
+                                                tls=False)
         self.contact = Contact.objects.create(email='test@domain.com')
         self.mailinglist = MailingList.objects.create(name='Test MailingList')
         self.newsletter = Newsletter.objects.create(title='Test Newsletter',
@@ -220,7 +234,8 @@ class MailerTestCase(TestCase):
     def setUp(self):
         self.server = SMTPServer.objects.create(name='Test SMTP',
                                                 host='smtp.domain.com',
-                                                mails_hour=100)
+                                                mails_hour=100,
+                                                tls=False)
         self.contacts = [Contact.objects.create(email='test1@domain.com'),
                          Contact.objects.create(email='test2@domain.com'),
                          Contact.objects.create(email='test3@domain.com'),
@@ -357,7 +372,8 @@ class MailerTestCase(TestCase):
 
     def test_recipients_refused(self):
         server = SMTPServer.objects.create(name='Local SMTP',
-                                           host='localhost')
+                                           host='localhost',
+                                           tls=False)
         contact = Contact.objects.create(email='thisisaninvalidemail')
         self.newsletter.test_contacts.clear()
         self.newsletter.test_contacts.add(contact)
@@ -369,6 +385,7 @@ class MailerTestCase(TestCase):
             status=ContactMailingStatus.INVALID, newsletter=self.newsletter).count(), 0)
 
         mailer = Mailer(self.newsletter, test=True)
+        mailer.smtp = FakeSMTPRefuse()
         mailer.run()
 
         self.assertEquals(Contact.objects.get(email='thisisaninvalidemail').valid, False)
@@ -381,7 +398,8 @@ class StatisticsTestCase(TestCase):
 
     def setUp(self):
         self.server = SMTPServer.objects.create(name='Test SMTP',
-                                                host='smtp.domain.com')
+                                                host='smtp.domain.com',
+                                                tls=False)
         self.contacts = [Contact.objects.create(email='test1@domain.com'),
                          Contact.objects.create(email='test2@domain.com'),
                          Contact.objects.create(email='test3@domain.com'),
