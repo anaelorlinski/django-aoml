@@ -16,7 +16,7 @@ class SubscribeWidget(models.Model):
 
     @property
     def subscribe_url(self):
-        return reverse('newsletter_mailinglist_subscribe', mailing_list_id=self.mailing_list.id)
+        return reverse('newsletter_mailinglist_subscribe', kwargs={'mailing_list_id': self.mailing_list.id})
 
     def render(self, **kwargs):
         return render_to_string('newsletter/feincms/subscribe_widget.html',
