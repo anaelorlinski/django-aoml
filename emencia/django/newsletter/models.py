@@ -9,9 +9,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Group
-from django.utils.encoding import force_unicode
+#from django.utils.encoding import force_unicode
+from django.utils import timezone
 
-from tagging.fields import TagField
+#from tagging.fields import TagField
 from emencia.django.newsletter.managers import ContactManager
 from emencia.django.newsletter.settings import BASE_PATH
 from emencia.django.newsletter.settings import MAILER_HARD_LIMIT
@@ -71,7 +72,7 @@ class SMTPServer(models.Model):
         if not self.mails_hour:
             return MAILER_HARD_LIMIT
 
-        last_hour = datetime.now() - timedelta(hours=1)
+        last_hour = timezone.now() - timedelta(hours=1)
         sent_last_hour = ContactMailingStatus.objects.filter(
             models.Q(status=ContactMailingStatus.SENT) |
             models.Q(status=ContactMailingStatus.SENT_TEST),
@@ -108,7 +109,7 @@ class Contact(models.Model):
     subscriber = models.BooleanField(_('subscriber'), default=True)
     valid = models.BooleanField(_('valid email'), default=True)
     tester = models.BooleanField(_('contact tester'), default=False)
-    tags = TagField(_('tags'))
+    tags = models.TextField(_('tags'))
 
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
@@ -134,9 +135,9 @@ class Contact(models.Model):
         if self.first_name and self.last_name:
             # return '%s %s <%s>' % (self.last_name, self.first_name, self.email)
             return '"%s %s" <%s>' % (
-                unicode(self.last_name).encode('utf-8'),
-                unicode(self.first_name).encode('utf-8'),
-                unicode(self.email).encode('utf-8')
+                str(self.last_name).encode('utf-8'),
+                str(self.first_name).encode('utf-8'),
+                str(self.email).encode('utf-8')
             )
         return self.email
     mail_format.short_description = _('mail format')
@@ -168,7 +169,7 @@ class MailingList(models.Model):
     description = models.TextField(_('description'), blank=True)
 
     subscribers = models.ManyToManyField(Contact, verbose_name=_('subscribers'),
-                                         related_name='mailinglist_subscriber')
+                                         related_name='mailinglist_subscriber', blank=True)
     unsubscribers = models.ManyToManyField(Contact, verbose_name=_('unsubscribers'),
                                            related_name='mailinglist_unsubscriber',
                                            blank=True)
@@ -215,7 +216,7 @@ class Newsletter(models.Model):
                       )
 
     title = models.CharField(_('title'), max_length=255,
-                             help_text=_('You can use the "{{ UNIQUE_KEY }}" variable '
+                             help_text=_('You can use the "{{ UNIQUE_KEY }}" variable ' \
                                          'for unique identifier within the newsletter\'s title.'))
     content = models.TextField(_('content'), help_text=_('Or paste an URL.'),
                                default=_('<body>\n<!-- Edit your newsletter here -->\n</body>'))
@@ -350,22 +351,21 @@ class ContactMailingStatus(models.Model):
         verbose_name_plural = _('contact mailing statuses')
 
 
-class WorkGroup(models.Model):
-
-    """Work Group for privatization of the ressources"""
-    name = models.CharField(_('name'), max_length=255)
-    group = models.ForeignKey(Group, verbose_name=_('permissions group'))
-
-    contacts = models.ManyToManyField(Contact, verbose_name=_('contacts'),
-                                      blank=True)
-    mailinglists = models.ManyToManyField(MailingList, verbose_name=_('mailing lists'),
-                                          blank=True)
-    newsletters = models.ManyToManyField(Newsletter, verbose_name=_('newsletters'),
-                                         blank=True)
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = _('workgroup')
-        verbose_name_plural = _('workgroups')
+# class WorkGroup(models.Model):
+#     """Work Group for privatization of the ressources"""
+#     name = models.CharField(_('name'), max_length=255)
+#     group = models.ForeignKey(Group, verbose_name=_('permissions group'))
+#
+#     contacts = models.ManyToManyField(Contact, verbose_name=_('contacts'),
+#                                       blank=True, null=True)
+#     mailinglists = models.ManyToManyField(MailingList, verbose_name=_('mailing lists'),
+#                                           blank=True, null=True)
+#     newsletters = models.ManyToManyField(Newsletter, verbose_name=_('newsletters'),
+#                                          blank=True, null=True)
+#
+#     def __unicode__(self):
+#         return self.name
+#
+#     class Meta:
+#         verbose_name = _('workgroup')
+#         verbose_name_plural = _('workgroups')

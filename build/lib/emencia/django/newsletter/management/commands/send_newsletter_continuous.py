@@ -20,7 +20,7 @@ class Command(NoArgsCommand):
         verbose = int(options['verbosity'])
 
         if verbose:
-            print 'Starting sending newsletters...'
+            print('Starting sending newsletters...')
 
         activate(settings.LANGUAGE_CODE)
 

@@ -1,10 +1,9 @@
 """ExcelResponse for emencia.django.newsletter"""
 # Based on http://www.djangosnippets.org/snippets/1151/
 import datetime
-
+from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models.query import QuerySet
-from django.db.models.query import ValuesQuerySet
 
 
 class ExcelResponse(HttpResponse):
@@ -12,23 +11,23 @@ class ExcelResponse(HttpResponse):
 
     def __init__(self, data, output_name='excel_data', headers=None,
                  force_csv=False, encoding='utf8'):
+        current_tz = timezone.get_current_timezone()
+
         valid_data = False
-        if isinstance(data, ValuesQuerySet):
-            data = list(data)
-        elif isinstance(data, QuerySet):
+        if isinstance(data, QuerySet):
             data = list(data.values())
         if hasattr(data, '__getitem__'):
             if isinstance(data[0], dict):
                 if headers is None:
-                    headers = data[0].keys()
+                    headers = list(data[0].keys())
                 data = [[row[col] for col in headers] for row in data]
                 data.insert(0, headers)
             if hasattr(data[0], '__getitem__'):
                 valid_data = True
         assert valid_data is True, "ExcelResponse requires a sequence of sequences"
 
-        import StringIO
-        output = StringIO.StringIO()
+        import io
+        output = io.StringIO()
         # Excel has a limit on number of rows; if we have more than that, make a csv
         use_xls = False
         if len(data) <= 65536 and force_csv is not True:
@@ -49,30 +48,33 @@ class ExcelResponse(HttpResponse):
                 for colx, value in enumerate(row):
                     if isinstance(value, datetime.datetime):
                         cell_style = styles['datetime']
+                        value = timezone.make_naive(value, current_tz)
                     elif isinstance(value, datetime.date):
                         cell_style = styles['date']
+                        value = timezone.make_naive(value, current_tz)
                     elif isinstance(value, datetime.time):
                         cell_style = styles['time']
+                        value = timezone.make_naive(value, current_tz)
                     else:
                         cell_style = styles['default']
                     sheet.write(rowx, colx, value, style=cell_style)
             book.save(output)
-            mimetype = 'application/vnd.ms-excel'
+            content_type = 'application/vnd.ms-excel'
             file_ext = 'xls'
         else:
             for row in data:
                 out_row = []
                 for value in row:
-                    if not isinstance(value, basestring):
-                        value = unicode(value)
+                    if not isinstance(value, str):
+                        value = str(value)
                     value = value.encode(encoding)
                     out_row.append(value.replace('"', '""'))
                 output.write('"%s"\n' %
                              '","'.join(out_row))
-            mimetype = 'text/csv'
+            content_type = 'text/csv'
             file_ext = 'csv'
         output.seek(0)
         super(ExcelResponse, self).__init__(content=output.getvalue(),
-                                            content_type=mimetype)
+                                            content_type=content_type)
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)

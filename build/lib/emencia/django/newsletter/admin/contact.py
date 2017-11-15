@@ -1,5 +1,5 @@
 """ModelAdmin for Contact"""
-import StringIO
+import io
 from django.conf import settings
 from datetime import datetime
 
@@ -122,7 +122,7 @@ class ContactAdmin(admin.ModelAdmin):
 
         if request.POST:
             source = request.FILES.get('source') or \
-                     StringIO.StringIO(request.POST.get('source', ''))
+                     io.StringIO(request.POST.get('source', ''))
             if not request.user.is_superuser and USE_WORKGROUPS:
                 workgroups = request_workgroups(request)
             else:

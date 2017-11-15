@@ -1,5 +1,5 @@
 """ModelAdmin for Newsletter"""
-from HTMLParser import HTMLParseError
+#from html.parser import HTMLParseError
 
 from django import forms
 from django.db.models import Q
@@ -19,10 +19,10 @@ try:
     from emencia.django.newsletter.utils.premailer import PremailerError
 except ImportError:
     CAN_USE_PREMAILER = False
-from emencia.django.newsletter.utils.workgroups import request_workgroups
-from emencia.django.newsletter.utils.workgroups import request_workgroups_contacts_pk
-from emencia.django.newsletter.utils.workgroups import request_workgroups_newsletters_pk
-from emencia.django.newsletter.utils.workgroups import request_workgroups_mailinglists_pk
+#from emencia.django.newsletter.utils.workgroups import request_workgroups
+#from emencia.django.newsletter.utils.workgroups import request_workgroups_contacts_pk
+#from emencia.django.newsletter.utils.workgroups import request_workgroups_newsletters_pk
+#from emencia.django.newsletter.utils.workgroups import request_workgroups_mailinglists_pk
 
 
 class AttachmentAdminInline(admin.TabularInline):
@@ -35,7 +35,7 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
     list_display = ('title', 'mailing_list', 'server', 'status',
                     'sending_date', 'creation_date', 'modification_date',
-                    'statistics_link')
+                    'historic_link', 'statistics_link')
     list_filter = ('status', 'sending_date', 'creation_date', 'modification_date')
     search_fields = ('title', 'content', 'header_sender', 'header_reply')
     filter_horizontal = ['test_contacts']
@@ -59,21 +59,21 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
             del actions['make_cancel_sending']
         return actions
 
-    def queryset(self, request):
-        queryset = super(BaseNewsletterAdmin, self).queryset(request)
-        if not request.user.is_superuser and USE_WORKGROUPS:
-            newsletters_pk = request_workgroups_newsletters_pk(request)
-            queryset = queryset.filter(pk__in=newsletters_pk)
-        return queryset
+#    def queryset(self, request):
+#        queryset = super(BaseNewsletterAdmin, self).queryset(request)
+#        if not request.user.is_superuser and USE_WORKGROUPS:
+#            newsletters_pk = request_workgroups_newsletters_pk(request)
+#            queryset = queryset.filter(pk__in=newsletters_pk)
+#        return queryset
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'mailing_list' and \
-               not request.user.is_superuser and USE_WORKGROUPS:
-            mailinglists_pk = request_workgroups_mailinglists_pk(request)
-            kwargs['queryset'] = MailingList.objects.filter(pk__in=mailinglists_pk)
-            return db_field.formfield(**kwargs)
-        return super(BaseNewsletterAdmin, self).formfield_for_foreignkey(
-            db_field, request, **kwargs)
+#    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+#        if db_field.name == 'mailing_list' and \
+#               not request.user.is_superuser and USE_WORKGROUPS:
+#            mailinglists_pk = request_workgroups_mailinglists_pk(request)
+#            kwargs['queryset'] = MailingList.objects.filter(pk__in=mailinglists_pk)
+#            return db_field.formfield(**kwargs)
+#        return super(BaseNewsletterAdmin, self).formfield_for_foreignkey(
+#            db_field, request, **kwargs)
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == 'status' and \
@@ -83,21 +83,21 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
         return super(BaseNewsletterAdmin, self).formfield_for_choice_field(
             db_field, request, **kwargs)
 
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == 'test_contacts':
-            queryset = Contact.objects.filter(tester=True)
-            if not request.user.is_superuser and USE_WORKGROUPS:
-                contacts_pk = request_workgroups_contacts_pk(request)
-                queryset = queryset.filter(pk__in=contacts_pk)
-            kwargs['queryset'] = queryset
-        return super(BaseNewsletterAdmin, self).formfield_for_manytomany(
-            db_field, request, **kwargs)
+#    def formfield_for_manytomany(self, db_field, request, **kwargs):
+#        if db_field.name == 'test_contacts':
+#            queryset = Contact.objects.filter(tester=True)
+#            if not request.user.is_superuser and USE_WORKGROUPS:
+#                contacts_pk = request_workgroups_contacts_pk(request)
+#                queryset = queryset.filter(pk__in=contacts_pk)
+#            kwargs['queryset'] = queryset
+#        return super(BaseNewsletterAdmin, self).formfield_for_manytomany(
+#            db_field, request, **kwargs)
 
     def save_model(self, request, newsletter, form, change):
         workgroups = []
-        if not newsletter.pk and not request.user.is_superuser \
-               and USE_WORKGROUPS:
-            workgroups = request_workgroups(request)
+#        if not newsletter.pk and not request.user.is_superuser \
+#               and USE_WORKGROUPS:
+#            workgroups = request_workgroups(request)
 
         if newsletter.content.startswith('http://'):
             if CAN_USE_PREMAILER:
@@ -113,13 +113,13 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
 
         newsletter.save()
 
-        for workgroup in workgroups:
-            workgroup.newsletters.add(newsletter)
+#        for workgroup in workgroups:
+#            workgroup.newsletters.add(newsletter)
 
     def historic_link(self, newsletter):
         """Display link for historic"""
         if newsletter.contactmailingstatus_set.count():
-            return u'<a href="%s">%s</a>' % (newsletter.get_historic_url(), _('View historic'))
+            return '<a href="%s">%s</a>' % (newsletter.get_historic_url(), _('View historic'))
         return _('Not available')
     historic_link.allow_tags = True
     historic_link.short_description = _('Historic')
@@ -128,7 +128,7 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
         """Display link for statistics"""
         if newsletter.status == Newsletter.SENDING or \
            newsletter.status == Newsletter.SENT:
-            return u'<a href="%s">%s</a>' % (newsletter.get_statistics_url(), _('View statistics'))
+            return '<a href="%s">%s</a>' % (newsletter.get_statistics_url(), _('View statistics'))
         return _('Not available')
     statistics_link.allow_tags = True
     statistics_link.short_description = _('Statistics')
@@ -173,19 +173,11 @@ if USE_TINYMCE:
 
     class NewsletterTinyMCEForm(forms.ModelForm):
         content = forms.CharField(
-            widget=TinyMCE(
-                attrs={'cols': 30, 'rows': 30},
-                mce_attrs={
-                    'schema': 'html4',
-                    'valid_children': "+body[style]",
-                    'valid_elements': "*[*]"
-                }
-            ))
+            widget=TinyMCE(attrs={'cols': 150, 'rows': 80}))
 
         class Meta:
             fields = '__all__'
             model = Newsletter
-            exclude = ('',)
 
     class NewsletterAdmin(BaseNewsletterAdmin):
         form = NewsletterTinyMCEForm

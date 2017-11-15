@@ -1,5 +1,5 @@
 """ModelAdmin for Newsletter"""
-from HTMLParser import HTMLParseError
+from html.parser import HTMLParseError
 
 from django import forms
 from django.db.models import Q
@@ -119,7 +119,7 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
     def historic_link(self, newsletter):
         """Display link for historic"""
         if newsletter.contactmailingstatus_set.count():
-            return u'<a href="%s">%s</a>' % (newsletter.get_historic_url(), _('View historic'))
+            return '<a href="%s">%s</a>' % (newsletter.get_historic_url(), _('View historic'))
         return _('Not available')
     historic_link.allow_tags = True
     historic_link.short_description = _('Historic')
@@ -128,7 +128,7 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
         """Display link for statistics"""
         if newsletter.status == Newsletter.SENDING or \
            newsletter.status == Newsletter.SENT:
-            return u'<a href="%s">%s</a>' % (newsletter.get_statistics_url(), _('View statistics'))
+            return '<a href="%s">%s</a>' % (newsletter.get_statistics_url(), _('View statistics'))
         return _('Not available')
     statistics_link.allow_tags = True
     statistics_link.short_description = _('Statistics')

@@ -5,7 +5,7 @@ import time
 import threading
 import mimetypes
 from random import sample
-from StringIO import StringIO
+from io import StringIO
 from datetime import datetime
 from datetime import timedelta
 from smtplib import SMTPRecipientsRefused
@@ -110,7 +110,7 @@ class NewsLetterSender(object):
         for attachment in self.attachments:
             message.attach(attachment)
 
-        for header, value in self.newsletter.server.custom_headers.items():
+        for header, value in list(self.newsletter.server.custom_headers.items()):
             message[header] = value
 
         return message
@@ -230,7 +230,7 @@ class NewsLetterSender(object):
             contact.save()
         else:
             # signal error
-            print >>sys.stderr, 'smtp connection raises %s' % exception
+            print('smtp connection raises %s' % exception, file=sys.stderr)
             status = ContactMailingStatus.ERROR
 
         ContactMailingStatus.objects.create(
@@ -256,20 +256,20 @@ class Mailer(NewsLetterSender):
 
         number_of_recipients = len(expedition_list)
         if self.verbose:
-            print '%i emails will be sent' % number_of_recipients
+            print('%i emails will be sent' % number_of_recipients)
 
         i = 1
         for contact in expedition_list:
             if self.verbose:
-                print '- Processing %s/%s (%s)' % (
-                    i, number_of_recipients, contact.pk)
+                print('- Processing %s/%s (%s)' % (
+                    i, number_of_recipients, contact.pk))
 
             try:
                 message = self.build_message(contact)
                 self.smtp.sendmail(smart_str(self.newsletter.header_sender),
                                    contact.email,
                                    message.as_string())
-            except Exception, e:
+            except Exception as e:
                 exception = e
             else:
                 exception = None
@@ -357,13 +357,13 @@ class SMTPMailer(object):
                 nl = sending[nl_id]
 
                 try:
-                    self.smtp.sendmail(*nl.next())
+                    self.smtp.sendmail(*next(nl))
                 except StopIteration:
                     del sending[nl_id]
-                except Exception, e:
+                except Exception as e:
                     nl.throw(e)
                 else:
-                    nl.next()
+                    next(nl)
 
                 sleep_time = (delay * i -
                               total_seconds(datetime.now() - self.start))
@@ -424,23 +424,23 @@ class NewsLetterExpedition(NewsLetterSender):
 
         number_of_recipients = len(expedition_list)
         if self.verbose:
-            print '%s %s: %i emails will be sent' % (
+            print('%s %s: %i emails will be sent' % (
                     datetime.now().strftime('%Y-%m-%d'),
-                    title, number_of_recipients)
+                    title, number_of_recipients))
 
         try:
             i = 1
             for contact in expedition_list:
                 if self.verbose:
-                    print '%s %s: processing %s/%s (%s)' % (
+                    print('%s %s: processing %s/%s (%s)' % (
                         datetime.now().strftime('%H:%M:%S'),
-                        title, i, number_of_recipients, contact.pk)
+                        title, i, number_of_recipients, contact.pk))
                 try:
                     message = self.build_message(contact)
                     yield (smart_str(self.newsletter.header_sender),
                                        contact.email,
                                        message.as_string())
-                except Exception, e:
+                except Exception as e:
                     exception = e
                 else:
                     exception = None

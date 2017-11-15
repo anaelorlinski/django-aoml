@@ -40,14 +40,9 @@ class AllMailingListSubscriptionForm(MailingListSubscriptionForm):
 
     mailing_lists = forms.ModelMultipleChoiceField(
         queryset=MailingList.objects.all(),
-        initial=[],
+        initial=[obj.id for obj in MailingList.objects.all()],
         label=_('Mailing lists'),
-        widget=forms.MultipleHiddenInput(attrs={"checked": ""}))
-
-    def __init__(self, *args, **kwargs):
-        super(AllMailingListSubscriptionForm, self).__init__(*args, **kwargs)
-        self.fields['mailing_lists'].initial = [obj.id
-                                                for obj in MailingList.objects.all()]
+        widget=forms.CheckboxSelectMultiple())
 
     def save(self, mailing_list):
         data = self.cleaned_data

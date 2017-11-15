@@ -2,7 +2,7 @@
 Used for converting a page with CSS inline and links corrected.
 Based on http://www.peterbe.com/plog/premailer.py"""
 import re
-from urllib2 import urlopen
+from urllib.request import urlopen
 from lxml.html import parse
 from lxml.html import tostring
 
@@ -51,22 +51,22 @@ def _merge_styles(old, new, class_=''):
 
     # Perform the merge
     merged = news
-    for k, v in groups.get(class_, {}).items():
+    for k, v in list(groups.get(class_, {}).items()):
         if k not in merged:
             merged[k] = v
     groups[class_] = merged
 
     if len(groups) == 1:
         return '; '.join(['%s:%s' % (k, v)
-                          for (k, v) in groups.values()[0].items()])
+                          for (k, v) in list(groups.values())[0].items()])
     else:
         all = []
-        for class_, mergeable in sorted(groups.items(),
+        for class_, mergeable in sorted(list(groups.items()),
                                         lambda x, y: cmp(x[0].count(':'), y[0].count(':'))):
             all.append('%s{%s}' % (class_,
                                    '; '.join(['%s:%s' % (k, v)
                                               for (k, v)
-                                              in mergeable.items()])))
+                                              in list(mergeable.items())])))
         return ' '.join([x for x in all if x != '{}'])
 
 
@@ -198,7 +198,7 @@ class Premailer(object):
                     value = value[:-2]
                 attributes['width'] = value
 
-        for key, value in attributes.items():
+        for key, value in list(attributes.items()):
             if key in element.attrib:
                 # Already set, don't dare to overwrite
                 continue

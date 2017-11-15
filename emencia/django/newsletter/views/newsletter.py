@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 
-from django.contrib.sites.models import Site
+#from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string as render_file
 
@@ -14,13 +14,13 @@ from emencia.django.newsletter.utils.newsletter import body_insertion
 from emencia.django.newsletter.utils.newsletter import track_links
 from emencia.django.newsletter.utils.tokens import untokenize
 from emencia.django.newsletter.settings import TRACKING_LINKS
-
+from emencia.django.newsletter.settings import DOMAIN
 
 def render_newsletter(request, slug, context):
     """Return a newsletter in HTML format"""
     newsletter = get_object_or_404(Newsletter, slug=slug)
     context.update({'newsletter': newsletter,
-                    'domain': Site.objects.get_current().domain})
+                    'domain': DOMAIN})
 
     content = render_string(newsletter.content, context)
     title = render_string(newsletter.title, context)

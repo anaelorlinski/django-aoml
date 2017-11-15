@@ -1,12 +1,14 @@
 """ModelAdmin for Contact"""
-import StringIO
+import io
+
+# TODO AO : replace StringIO with io.StringIO
+
 from django.conf import settings
 from datetime import datetime
 
 from django.contrib import admin
 from django.dispatch import Signal
 from django.conf.urls import url
-from django.conf.urls import patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -18,8 +20,8 @@ from django.db import DatabaseError
 from emencia.django.newsletter.models import MailingList
 from emencia.django.newsletter.settings import USE_WORKGROUPS
 from emencia.django.newsletter.utils.importation import import_dispatcher
-from emencia.django.newsletter.utils.workgroups import request_workgroups
-from emencia.django.newsletter.utils.workgroups import request_workgroups_contacts_pk
+#from emencia.django.newsletter.utils.workgroups import request_workgroups
+#from emencia.django.newsletter.utils.workgroups import request_workgroups_contacts_pk
 from emencia.django.newsletter.utils.vcard import vcard_contacts_export_response
 from emencia.django.newsletter.utils.excel import ExcelResponse
 
@@ -43,21 +45,21 @@ class ContactAdmin(admin.ModelAdmin):
     actions_on_top = False
     actions_on_bottom = True
 
-    def queryset(self, request):
-        queryset = super(ContactAdmin, self).queryset(request)
-        if not request.user.is_superuser and USE_WORKGROUPS:
-            contacts_pk = request_workgroups_contacts_pk(request)
-            queryset = queryset.filter(pk__in=contacts_pk)
-        return queryset
+#    def queryset(self, request):
+#        queryset = super(ContactAdmin, self).queryset(request)
+#        if not request.user.is_superuser and USE_WORKGROUPS:
+#            contacts_pk = request_workgroups_contacts_pk(request)
+#            queryset = queryset.filter(pk__in=contacts_pk)
+#        return queryset
 
-    def save_model(self, request, contact, form, change):
-        workgroups = []
-        if not contact.pk and not request.user.is_superuser \
-               and USE_WORKGROUPS:
-            workgroups = request_workgroups(request)
-        contact.save()
-        for workgroup in workgroups:
-            workgroup.contacts.add(contact)
+#    def save_model(self, request, contact, form, change):
+#        workgroups = []
+#        if not contact.pk and not request.user.is_superuser \
+#               and USE_WORKGROUPS:
+#            workgroups = request_workgroups(request)
+#        contact.save()
+#        for workgroup in workgroups:
+#            workgroup.contacts.add(contact)
 
     def related_object_admin(self, contact):
         """Display link to related object's admin"""
@@ -107,9 +109,9 @@ class ContactAdmin(admin.ModelAdmin):
         except DatabaseError:
             new_mailing.subscribers = queryset.none()
 
-        if not request.user.is_superuser and USE_WORKGROUPS:
-            for workgroup in request_workgroups(request):
-                workgroup.mailinglists.add(new_mailing)
+#        if not request.user.is_superuser and USE_WORKGROUPS:
+#            for workgroup in request_workgroups(request):
+#                workgroup.mailinglists.add(new_mailing)
 
         self.message_user(request, _('%s succesfully created.') % new_mailing)
         return HttpResponseRedirect(reverse('admin:newsletter_mailinglist_change',
@@ -123,10 +125,11 @@ class ContactAdmin(admin.ModelAdmin):
         if request.POST:
             source = request.FILES.get('source') or \
                      StringIO.StringIO(request.POST.get('source', ''))
-            if not request.user.is_superuser and USE_WORKGROUPS:
-                workgroups = request_workgroups(request)
-            else:
-                workgroups = []
+#            if not request.user.is_superuser and USE_WORKGROUPS:
+#                workgroups = request_workgroups(request)
+#            else:
+#                workgroups = []
+            workgroups = []
             inserted = import_dispatcher(source, request.POST['type'],
                                          workgroups)
             if inserted:
@@ -138,6 +141,7 @@ class ContactAdmin(admin.ModelAdmin):
         context = {'title': _('Contact importation'),
                    'opts': opts,
                    #'root_path': self.admin_site.root_path,
+                   'root_path': reverse('admin:index'),
                    'app_label': opts.app_label}
 
         return render_to_response('newsletter/contact_import.html',
@@ -149,8 +153,8 @@ class ContactAdmin(admin.ModelAdmin):
                         self.list_display_links, self.list_filter,
                         self.date_hierarchy, self.search_fields,
                         self.list_select_related, self.list_per_page,
-                        self.list_editable, self)
-        return cl.get_query_set()
+                        self.list_max_show_all, self.list_editable, self)
+        return cl.get_query_set(request)
 
     def creation_mailinglist(self, request):
         """Create a mailing list form the filtered contacts"""
@@ -168,7 +172,7 @@ class ContactAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(ContactAdmin, self).get_urls()
-        my_urls = patterns('',
+        my_urls = [
                            url(r'^import/$',
                                self.admin_site.admin_view(self.importation),
                                name='newsletter_contact_import'),
@@ -180,5 +184,5 @@ class ContactAdmin(admin.ModelAdmin):
                                name='newsletter_contact_export_vcard'),
                            url(r'^export/excel/$',
                                self.admin_site.admin_view(self.exportation_excel),
-                               name='newsletter_contact_export_excel'),)
+                               name='newsletter_contact_export_excel'),]
         return my_urls + urls

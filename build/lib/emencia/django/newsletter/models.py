@@ -134,9 +134,9 @@ class Contact(models.Model):
         if self.first_name and self.last_name:
             # return '%s %s <%s>' % (self.last_name, self.first_name, self.email)
             return '"%s %s" <%s>' % (
-                unicode(self.last_name).encode('utf-8'),
-                unicode(self.first_name).encode('utf-8'),
-                unicode(self.email).encode('utf-8')
+                str(self.last_name).encode('utf-8'),
+                str(self.first_name).encode('utf-8'),
+                str(self.email).encode('utf-8')
             )
         return self.email
     mail_format.short_description = _('mail format')

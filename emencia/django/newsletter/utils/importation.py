@@ -9,7 +9,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from tagging.models import Tag
+#from tagging.models import Tag
 
 from emencia.django.newsletter.models import Contact
 from emencia.django.newsletter.models import MailingList
@@ -32,10 +32,10 @@ def create_contact(contact_dict, workgroups=[]):
         email=contact_dict['email'],
         defaults=contact_dict)
 
-    if not created:
-        new_tags = contact_dict.get('tags')
-        if new_tags:
-            Tag.objects.update_tags(contact, '%s, %s' % (contact.tags, new_tags))
+    #if not created:
+    #    new_tags = contact_dict.get('tags')
+    #    if new_tags:
+    #        Tag.objects.update_tags(contact, '%s, %s' % (contact.tags, new_tags))
 
     for workgroup in workgroups:
         workgroup.contacts.add(contact)

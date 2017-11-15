@@ -99,7 +99,7 @@ def get_newsletter_top_links(status):
         links[cl.link] += 1
 
     top_links = []
-    for link, score in sorted(links.iteritems(), key=lambda (k, v): (v, k), reverse=True):
+    for link, score in sorted(iter(links.items()), key=lambda k_v: (k_v[1], k_v[0]), reverse=True):
         unique_clicks = len(set(clicked_links.filter(link=link).values_list('contact', flat=True)))
         top_links.append({'link': link,
                           'total_clicks': score,

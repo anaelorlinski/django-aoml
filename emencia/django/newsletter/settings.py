@@ -38,3 +38,5 @@ RESTART_CONNECTION_BETWEEN_SENDING = getattr(
     settings, 'NEWSLETTER_RESTART_CONNECTION_BETWEEN_SENDING', False)
 
 BASE_PATH = getattr(settings, 'NEWSLETTER_BASE_PATH', 'uploads/newsletter')
+
+DOMAIN = getattr(settings, 'NEWSLETTER_DOMAIN', 'www.example.com')

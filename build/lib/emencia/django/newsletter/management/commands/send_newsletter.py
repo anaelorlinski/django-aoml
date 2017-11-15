@@ -26,7 +26,7 @@ class Command(NoArgsCommand):
         verbose = int(options['verbosity'])
 
         if verbose:
-            print 'Starting sending newsletters...'
+            print('Starting sending newsletters...')
 
         activate(settings.LANGUAGE_CODE)
 
@@ -37,9 +37,9 @@ class Command(NoArgsCommand):
             mailer = Mailer(newsletter, test=is_test, verbose=verbose)
             if mailer.can_send:
                 if verbose:
-                    print 'Start emailing %s' % unicode(
-                        newsletter.title).encode('utf-8')
+                    print('Start emailing %s' % str(
+                        newsletter.title).encode('utf-8'))
                 mailer.run()
 
         if verbose:
-            print 'End session sending'
+            print('End session sending')

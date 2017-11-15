@@ -1,5 +1,5 @@
 """Utils for newsletter"""
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from django.core.urlresolvers import reverse
 
 from emencia.django.newsletter.models import Link
@@ -21,7 +21,7 @@ def body_insertion(content, insertion, end=False):
     if USE_PRETTIFY:
         return soup.prettify()
     else:
-        return soup.renderContents()
+        return soup.encode_contents()
 
 
 def track_links(content, context):
@@ -45,4 +45,4 @@ def track_links(content, context):
     if USE_PRETTIFY:
         return soup.prettify()
     else:
-        return soup.renderContents()
+        return soup.encode_contents()

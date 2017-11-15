@@ -1,11 +1,11 @@
 """Views for emencia.django.newsletter Tracking"""
 import base64
-from urllib import urlencode
-from urlparse import urlparse
-from urlparse import urlunparse
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 # For Python < 2.6
 try:
-    from urlparse import parse_qs
+    from urllib.parse import parse_qs
 except ImportError:
     from cgi import parse_qs
 

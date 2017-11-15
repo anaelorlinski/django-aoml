@@ -13,10 +13,8 @@
 
 import copy
 
-try:
-    from django.utils.simplejson import dumps
-except ImportError:
-    from json import dumps
+from json import dumps
+#from django.utils.simplejson import dumps
 
 
 class Chart(dict):
@@ -32,7 +30,7 @@ class Chart(dict):
         'gradient_fill': 'gradient-fill', 'negative_colour': 'negative-colour'}
 
     def __init__(self, *ka, **kw):
-        for key, value in kw.items():
+        for key, value in list(kw.items()):
             self.__dict__[key] = value
 
     def __getattribute__(self, key):
@@ -44,7 +42,7 @@ class Chart(dict):
 
     def __copy__(self):
         attributes = dict()
-        for key, value in self.__dict__.items():
+        for key, value in list(self.__dict__.items()):
             if isinstance(value, list):
                 attributes[self.replaceKey(key)] = [copy.copy(item) for item in value]
             else:
