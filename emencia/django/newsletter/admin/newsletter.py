@@ -1,5 +1,4 @@
 """ModelAdmin for Newsletter"""
-#from html.parser import HTMLParseError
 
 from django import forms
 from django.db.models import Q
@@ -13,12 +12,10 @@ from emencia.django.newsletter.models import MailingList
 from emencia.django.newsletter.mailer import Mailer
 from emencia.django.newsletter.settings import USE_TINYMCE
 from emencia.django.newsletter.settings import USE_WORKGROUPS
-try:
-    CAN_USE_PREMAILER = True
-    from emencia.django.newsletter.utils.premailer import Premailer
-    from emencia.django.newsletter.utils.premailer import PremailerError
-except ImportError:
-    CAN_USE_PREMAILER = False
+import urllib.request
+import urllib.parse
+from premailer import Premailer
+from premailer.premailer import PremailerError, ExternalNotFoundError
 #from emencia.django.newsletter.utils.workgroups import request_workgroups
 #from emencia.django.newsletter.utils.workgroups import request_workgroups_contacts_pk
 #from emencia.django.newsletter.utils.workgroups import request_workgroups_newsletters_pk
@@ -39,7 +36,7 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
     list_filter = ('status', 'sending_date', 'creation_date', 'modification_date')
     search_fields = ('title', 'content', 'header_sender', 'header_reply')
     filter_horizontal = ['test_contacts']
-    fieldsets = ((None, {'fields': ('title', 'content',)}),
+    fieldsets = ((None, {'fields': ('title', 'import_url', 'content',)}),
                  (_('Receivers'), {'fields': ('mailing_list', 'test_contacts',)}),
                  (_('Sending'), {'fields': ('sending_date', 'status',)}),
                  (_('Miscellaneous'), {'fields': ('server', 'header_sender',
@@ -51,6 +48,8 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
     actions = ['send_mail_test', 'make_ready_to_send', 'make_cancel_sending']
     actions_on_top = False
     actions_on_bottom = True
+
+
 
     def get_actions(self, request):
         actions = super(BaseNewsletterAdmin, self).get_actions(request)
@@ -74,6 +73,19 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
 #            return db_field.formfield(**kwargs)
 #        return super(BaseNewsletterAdmin, self).formfield_for_foreignkey(
 #            db_field, request, **kwargs)
+
+    #def formfield_for_dbfield(self, db_field, request, **kwargs):
+    #    if db_field.name == 'content':
+    #        kwargs['widget'] = ColourChooserWidget
+    #    return super(BaseNewsletterAdmin, self).formfield_for_dbfield(db_field, request, **kwargs)
+    
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'content':
+            kwargs['widget'] = admin.widgets.AdminTextareaWidget(attrs={"class":"noTinyMCE"})
+            #kwargs.pop('request', None)
+            #return db_field.formfield(**kwargs)
+        return super(BaseNewsletterAdmin,self).formfield_for_dbfield(db_field,**kwargs)
+
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == 'status' and \
@@ -99,15 +111,20 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
 #               and USE_WORKGROUPS:
 #            workgroups = request_workgroups(request)
 
-        if newsletter.content.startswith('http://'):
-            if CAN_USE_PREMAILER:
-                try:
-                    premailer = Premailer(newsletter.content.strip())
+        if len(newsletter.import_url):
+            try:
+                with urllib.request.urlopen(newsletter.import_url) as response:
+                    charset=response.info().get_content_charset()
+                    data=response.read().decode(charset)
+                    split_url = urllib.parse.urlsplit(newsletter.import_url)
+                    
+                    premailer = Premailer(data, base_url=split_url.scheme+"://"+split_url.netloc+"/")
                     newsletter.content = premailer.transform()
-                except PremailerError:
+                    newsletter.import_url = ""
+            except ExternalNotFoundError as e:
+                    self.message_user(request, _('Missing external file %s') % e)
+            except PremailerError:
                     self.message_user(request, _('Unable to download HTML, due to errors within.'))
-            else:
-                self.message_user(request, _('Please install lxml for parsing an URL.'))
         if not request.user.has_perm('newsletter.can_change_status'):
             newsletter.status = form.initial.get('status', Newsletter.DRAFT)
 
@@ -140,8 +157,9 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
                 mailer = Mailer(newsletter, test=True)
                 try:
                     mailer.run()
-                except HTMLParseError:
-                    self.message_user(request, _('Unable send newsletter, due to errors within HTML.'))
+                except Exception as e:
+                    raise e #todo : remove (test)
+                    self.message_user(request, _('Error : %s') % e)
                     continue
                 self.message_user(request, _('%s succesfully sent.') % newsletter)
             else:

@@ -8,20 +8,22 @@ from emencia.django.newsletter.settings import USE_PRETTIFY
 
 def body_insertion(content, insertion, end=False):
     """Insert an HTML content into the body HTML node"""
-    if not content.startswith('<body'):
-        content = '<body>%s</body>' % content
+    #if not content.startswith('<body'):
+    #    content = '<body>%s</body>' % content
     soup = BeautifulSoup(content)
     insertion = BeautifulSoup(insertion)
 
     if end:
-        soup.body.append(insertion)
+        for c in insertion.body.children:
+            soup.body.append(c)
     else:
-        soup.body.insert(0, insertion)
+        for c in insertion.body.children:
+            soup.body.insert(0, c)
 
     if USE_PRETTIFY:
-        return soup.prettify()
+        return soup.body.prettify()
     else:
-        return soup.encode_contents()
+        return soup.body.encode()
 
 
 def track_links(content, context):

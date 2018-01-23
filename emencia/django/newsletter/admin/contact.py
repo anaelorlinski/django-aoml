@@ -31,12 +31,11 @@ contacts_imported = Signal(providing_args=['source', 'type'])
 
 class ContactAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('email', 'first_name', 'last_name', 'tags', 'tester', 'subscriber',
+    list_display = ('email', 'first_name', 'last_name', 'tester', 'subscriber',
                     'valid', 'total_subscriptions', 'creation_date', 'related_object_admin')
     list_filter = ('subscriber', 'valid', 'tester', 'creation_date', 'modification_date')
-    search_fields = ('email', 'first_name', 'last_name', 'tags')
+    search_fields = ('email', 'first_name', 'last_name')
     fieldsets = ((None, {'fields': ('email', 'first_name', 'last_name')}),
-                 (None, {'fields': ('tags',)}),
                  (_('Status'), {'fields': ('subscriber', 'valid', 'tester')}),
                  (_('Advanced'), {'fields': ('object_id', 'content_type'),
                                   'classes': ('collapse',)}),
@@ -69,7 +68,7 @@ class ContactAdmin(admin.ModelAdmin):
                                 args=(contact.object_id,))
             return '%s: <a href="%s">%s</a>' % (contact.content_type.model.capitalize(),
                                                 admin_url,
-                                                contact.content_object.__unicode__())
+                                                contact.content_object.__str__())
         return _('No relative object')
     related_object_admin.allow_tags = True
     related_object_admin.short_description = _('Related object')

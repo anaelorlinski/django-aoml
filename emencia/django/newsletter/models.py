@@ -109,8 +109,7 @@ class Contact(models.Model):
     subscriber = models.BooleanField(_('subscriber'), default=True)
     valid = models.BooleanField(_('valid email'), default=True)
     tester = models.BooleanField(_('contact tester'), default=False)
-    tags = models.TextField(_('tags'))
-
+    
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_object = GenericForeignKey('content_type', 'object_id')
@@ -147,13 +146,11 @@ class Contact(models.Model):
             return self.content_object.get_absolute_url()
         return reverse('admin:newsletter_contact_change', args=(self.pk,))
 
-    def __unicode__(self):
+    def __str__(self):
         if self.first_name and self.last_name:
             contact_name = '%s %s' % (self.last_name, self.first_name)
         else:
             contact_name = self.email
-        if self.tags:
-            return '%s | %s' % (contact_name, self.tags)
         return contact_name
 
     class Meta:
@@ -190,7 +187,7 @@ class MailingList(models.Model):
         return self.subscribers.valid_subscribers().exclude(
             id__in=unsubscribers_id)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -218,8 +215,12 @@ class Newsletter(models.Model):
     title = models.CharField(_('title'), max_length=255,
                              help_text=_('You can use the "{{ UNIQUE_KEY }}" variable ' \
                                          'for unique identifier within the newsletter\'s title.'))
-    content = models.TextField(_('content'), help_text=_('Or paste an URL.'),
+    import_url = models.CharField(_('import_url'), max_length=255, default='', blank=True,
+                             help_text=_('Specify an URL to import HTML from'))
+    
+    content = models.TextField(_('content'), help_text=_('Newletter content'),
                                default=_('<body>\n<!-- Edit your newsletter here -->\n</body>'))
+
 
     mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'))
     test_contacts = models.ManyToManyField(Contact, verbose_name=_('test contacts'),

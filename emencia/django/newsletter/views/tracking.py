@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext
 from django.utils.encoding import smart_str
 from django.utils.translation import ugettext as _
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from emencia.django.newsletter.models import Link
@@ -70,5 +70,4 @@ def view_newsletter_historic(request, slug):
                'opts': opts,
                'object_id': newsletter.pk,
                'app_label': opts.app_label}
-    return render_to_response('newsletter/newsletter_historic.html',
-                              context, context_instance=RequestContext(request))
+    return render(request, 'newsletter/newsletter_historic.html', context)

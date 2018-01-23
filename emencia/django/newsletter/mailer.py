@@ -92,13 +92,13 @@ class NewsLetterSender(object):
         message = MIMEMultipart()
 
         message['Subject'] = self.build_title_content(contact)
-        message['From'] = smart_str(self.newsletter.header_sender)
-        message['Reply-to'] = smart_str(self.newsletter.header_reply)
+        message['From'] = smart_text(self.newsletter.header_sender)
+        message['Reply-to'] = smart_text(self.newsletter.header_reply)
         message['To'] = contact.mail_format()
 
         message_alt = MIMEMultipart('alternative')
-        message_alt.attach(MIMEText(smart_str(content_text), 'plain', 'UTF-8'))
-        message_alt.attach(MIMEText(smart_str(content_html), 'html', 'UTF-8'))
+        message_alt.attach(MIMEText(smart_text(content_text), 'plain', 'UTF-8'))
+        message_alt.attach(MIMEText(smart_text(content_html), 'html', 'UTF-8'))
         message.attach(message_alt)
 
         for attachment in self.attachments:
@@ -152,13 +152,13 @@ class NewsLetterSender(object):
     def build_email_content(self, contact):
         """Generate the mail for a contact"""
         uidb36, token = tokenize(contact)
-        context = Context({'contact': contact,
+        context = {'contact': contact,
 #                           'domain': Site.objects.get_current().domain,
                           'domain': DOMAIN,
                            'newsletter': self.newsletter,
                            'tracking_image_format': TRACKING_IMAGE_FORMAT,
-                           'uidb36': uidb36, 'token': token})
-        content = self.newsletter_template.render(context)
+                           'uidb36': uidb36, 'token': token}
+        content = self.newsletter_template.render(Context(context))
         if TRACKING_LINKS:
             content = track_links(content, context)
         link_site = render_to_string('newsletter/newsletter_link_site.html', context)
@@ -170,7 +170,7 @@ class NewsLetterSender(object):
         if TRACKING_IMAGE:
             image_tracking = render_to_string('newsletter/newsletter_image_tracking.html', context)
             content = body_insertion(content, image_tracking, end=True)
-        return smart_unicode(content)
+        return smart_text(content)
 
     def update_newsletter_status(self):
         """Update the status of the newsletter"""
@@ -256,10 +256,11 @@ class Mailer(NewsLetterSender):
 
             try:
                 message = self.build_message(contact)
-                self.smtp.sendmail(smart_str(self.newsletter.header_sender),
+                self.smtp.sendmail(smart_text(self.newsletter.header_sender),
                                    contact.email,
                                    message.as_string())
             except Exception as e:
+                raise e #todo : remove (test)
                 exception = e
             else:
                 exception = None

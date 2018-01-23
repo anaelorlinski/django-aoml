@@ -1,8 +1,7 @@
 """Views for emencia.django.newsletter Newsletter"""
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404
-from django.shortcuts import render_to_response
-
+from django.shortcuts import render
 #from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string as render_file
@@ -29,11 +28,10 @@ def render_newsletter(request, slug, context):
     unsubscription = render_file('newsletter/newsletter_link_unsubscribe.html', context)
     content = body_insertion(content, unsubscription, end=True)
 
-    return render_to_response('newsletter/newsletter_detail.html',
+    return render(request, 'newsletter/newsletter_detail.html',
                               {'content': content,
                                'title': title,
-                               'object': newsletter},
-                              context_instance=RequestContext(request))
+                               'object': newsletter})
 
 
 @login_required
