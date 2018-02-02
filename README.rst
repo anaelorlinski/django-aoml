@@ -1,6 +1,13 @@
-=========================
-Emencia Django Newsletter
-=========================
+=============================
+django-aoml : AO Mailing List
+=============================
+
+Note:
+This project is a fork of Emencia Django Newsletter, patches from various forks have been integrated.
+Migration to Django 1.11 / Python 3.5 has been mostly completed.
+Some features have been removed / changed compare to original version.
+
+
 
 The problematic was :
 
@@ -20,12 +27,19 @@ More than a long speech, here the list of the main features :
   * Mailing list managements (merging, importing...).
   * Import/Export of the contact in VCard 3.0.
   * Configurable SMTP servers with flow limit management.
-  * Working groups.
   * Can send newsletter previews.
   * Subscriptions and unsubscriptions to mailing list.
   * Attachments in newsletters.
   * Unique urls for an user.
   * Tracking statistics.
+
+Changes from original Emencia Django Newsletter
+===============================================
+  * Now uses external premailer project
+  * The newsletter engine will replace {{ unsubscribe }} with unsubscribe link in the newsletter content.If you use templates to generate content, you need to use {% verbatim %}{{ unsubscribe }}{% endverbatim %}
+  * The newsletter engine will replace {{ viewonsite }} with view on website link in the newsletter content. If you use templates to generate content, you need to use {% verbatim %}{{ viewonsite }}{% endverbatim %}
+  * Tagging is removed
+  * Workgroups is removed
 
 
 Architecture
@@ -59,6 +73,8 @@ Installation
 
 Dependencies
 ------------
+
+Note : outdated
 
 Make sure to install these packages prior to installation :
 

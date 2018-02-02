@@ -2,11 +2,11 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-from emencia.django import newsletter
+import aoml
 
 
-setup(name='emencia.django.newsletter',
-      version=newsletter.__version__,
+setup(name='aoml',
+      version=aoml.__version__,
       description='A Django app for sending newsletter by email to a contact list.',
       long_description=open('README.rst').read() + '\n' +
                        open(os.path.join('docs', 'HISTORY.txt')).read(),
@@ -21,13 +21,12 @@ setup(name='emencia.django.newsletter',
           'Development Status :: 5 - Production/Stable',
           'Topic :: Software Development :: Libraries :: Python Modules',],
 
-      author=newsletter.__author__,
-      author_email=newsletter.__email__,
-      url=newsletter.__url__,
+      author=aoml.__author__,
+      author_email=aoml.__email__,
+      url=aoml.__url__,
 
-      license=newsletter.__license__,
+      license=aoml.__license__,
       packages=find_packages(exclude=['demo']),
-      namespace_packages=['emencia', 'emencia.django'],
       include_package_data=True,
       zip_safe=False,
       test_suite="runtests.runtests",

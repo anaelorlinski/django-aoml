@@ -1,0 +1,76 @@
+{% extends "admin/base_site.html" %}
+{% load i18n staticfiles %}
+
+{% block breadcrumbs %}
+{% if not is_popup %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+     <a href="../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     {% trans 'Importation' %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}" />{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+  <form action="." method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div> 
+      <fieldset class="module aligned">
+        <h2>{% trans "Text" %}</h2>
+        <div class="form-row source">
+            {% for field in form %}
+            <div>
+              <label for="id_source">{{ field.label }}</label>
+              {{ field }}
+            </div>
+            {% endfor %}
+          <div>
+            <label for="id_source" class="required">{% trans "Text file (.txt, .csv)" %} :</label>
+            <input name="source" id="id_source" type="file" class="vTextField" />
+          </div>
+          <p class="help">{% trans "Import contacts from a text file, or a CSV file." %}<br />
+            {% trans "Columns are [email][last name][first name][tags], splitted by a dot coma." %}<br />
+            {% trans "All columns are optionnal excepting the email." %}
+          </p>
+        </div>
+      </fieldset>
+      <div class="submit-row">
+        <input type="submit" class="default" value="{% trans "Import" %}" />
+      </div>
+    </div>
+  </form>
+
+  <form action="." method="post">
+    {% csrf_token %}
+    <div>
+      <fieldset class="module aligned">
+        <h2>{% trans "Raw text" %}</h2>
+        <div class="form-row source">
+            {% for field in form %}
+            <div>
+              <label for="id_source">{{ field.label }}</label>
+              {{ field }}
+            </div>
+            {% endfor %}
+          <div>
+            <label for="id_source" class="required">{% trans "Raw text" %} :</label>
+            <textarea name="source" id="id_source" class="vLargeTextField" cols="40" rows="15" /></textarea>
+          </div>
+          <p class="help">{% trans "Columns are [email][last name][first name][tags], splitted by a dot coma." %}<br />
+            {% trans "All columns are optionnal excepting the email." %}
+          </p>
+        </div>
+      </fieldset>
+      <div class="submit-row">
+        <input type="submit" class="default" value="{% trans "Import" %}" />
+      </div>
+    </div>
+  </form>
+
+</div>
+{% endblock %}
