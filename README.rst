@@ -38,6 +38,8 @@ Changes from original Emencia Django Newsletter
   * Now uses external premailer project
   * The newsletter engine will replace {{ unsubscribe }} with unsubscribe link in the newsletter content.If you use templates to generate content, you need to use {% verbatim %}{{ unsubscribe }}{% endverbatim %}
   * The newsletter engine will replace {{ viewonsite }} with view on website link in the newsletter content. If you use templates to generate content, you need to use {% verbatim %}{{ viewonsite }}{% endverbatim %}
+  * The newsletter engine will replace {{ imagetracking }} with tracking image in the newsletter content. If you use templates to generate content, you need to use {% verbatim %}{{ imagetracking }}{% endverbatim %}
+  
   * Tagging is removed
   * Workgroups is removed
 

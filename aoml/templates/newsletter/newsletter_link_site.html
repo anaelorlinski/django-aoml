@@ -1,10 +1,10 @@
 {% load i18n %}
+{% comment %}
 <div id="links" style="text-align:center">
   <a name="links"></a>
   <p>
-    {% comment %}
-    {% trans "If you cannot see this email," %}
-    {% endcomment %}
-    <a style="color:#888888" href="http://{{ domain }}{% url 'newsletter_newsletter_contact' slug=newsletter.slug uidb36=uidb36 token=token %}">{% trans "Voir sur le site" %}</a>
+    {% trans "If you cannot see this email," %} 
   </p>
 </div>
+{% endcomment %}
+<a style="color:#AAAAAA" href="http://{{ domain }}{% url 'newsletter_newsletter_contact' slug=newsletter.slug uidb36=uidb36 token=token %}">{% trans "Voir sur le site" %}</a>

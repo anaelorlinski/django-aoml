@@ -1,10 +1,11 @@
 {% load i18n %}
+{% comment %}
 <div id="unsubscription" style="text-align:center">
   <a name="unsubscription"></a>
   <p>
-    {% comment %}
     {% trans "For unsubscribing to this mailing list," %}
-    {% endcomment %}
     <a style="color:#aaaaaa" href="{% if uidb36 and token %}http://{{ domain }}{% url 'newsletter_mailinglist_unsubscribe' slug=newsletter.slug uidb36=uidb36 token=token %}{% else %}#{% endif %}">{% trans "Unsubscribe" %}</a>
   </p>
 </div>
+{% endcomment %}
+<a style="color:#aaaaaa" href="{% if uidb36 and token %}http://{{ domain }}{% url 'newsletter_mailinglist_unsubscribe' slug=newsletter.slug uidb36=uidb36 token=token %}{% else %}#{% endif %}">{% trans "Unsubscribe" %}</a>

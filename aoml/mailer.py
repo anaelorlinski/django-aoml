@@ -25,6 +25,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.utils.encoding import smart_text
 from django.utils import timezone
+from django.utils.text import mark_safe
 
 from .models import Newsletter
 from .models import ContactMailingStatus
@@ -162,18 +163,21 @@ class NewsLetterSender(object):
                            'newsletter': self.newsletter,
                            'tracking_image_format': TRACKING_IMAGE_FORMAT,
                            'uidb36': uidb36, 'token': token}
-        content = self.newsletter_template.render(Context(context))
-        if TRACKING_LINKS:
-            content = track_links(content, context)
+
         link_site = render_to_string('newsletter/newsletter_link_site.html', context)
-        content = body_insertion(content, link_site)
+        context['viewonsite'] = mark_safe(link_site)
 
         if INCLUDE_UNSUBSCRIPTION:
-            unsubscription = render_to_string('newsletter/newsletter_link_unsubscribe.html', context)
-            content = body_insertion(content, unsubscription, end=True)
+            context['unsubscribe'] = render_to_string('newsletter/newsletter_link_unsubscribe.html', context)
         if TRACKING_IMAGE:
-            image_tracking = render_to_string('newsletter/newsletter_image_tracking.html', context)
-            content = body_insertion(content, image_tracking, end=True)
+            context['imagetracking'] = render_to_string('newsletter/newsletter_image_tracking.html', context)
+
+        content = self.newsletter_template.render(Context(context))
+        
+        
+        if TRACKING_LINKS:
+            content = track_links(content, context)
+        
         return smart_text(content)
 
     def update_newsletter_status(self):
