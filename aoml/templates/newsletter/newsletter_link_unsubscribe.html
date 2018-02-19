@@ -8,4 +8,4 @@
   </p>
 </div>
 {% endcomment %}
-<a style="color:#aaaaaa" href="{% if uidb36 and token %}http://{{ domain }}{% url 'newsletter_mailinglist_unsubscribe' slug=newsletter.slug uidb36=uidb36 token=token %}{% else %}#{% endif %}">{% trans "Unsubscribe" %}</a>
+<a style="color:#aaaaaa" rel="no-track" href="{% if uidb36 and token %}http://{{ domain }}{% url 'newsletter_mailinglist_unsubscribe' slug=newsletter.slug uidb36=uidb36 token=token %}{% else %}#{% endif %}">{% trans "Unsubscribe" %}</a>

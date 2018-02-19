@@ -92,6 +92,7 @@ def get_newsletter_unsubscription_statistics(status, recipients):
 def get_newsletter_top_links(status):
     """Return the most clicked links"""
     links = {}
+    
     clicked_links = status.filter(status=Status.LINK_OPENED)
 
     for cl in clicked_links:

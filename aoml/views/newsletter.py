@@ -10,7 +10,6 @@ from django.template.loader import render_to_string
 from ..models import Newsletter
 from ..models import ContactMailingStatus
 from ..utils import render_string
-from ..utils.newsletter import body_insertion
 from ..utils.newsletter import track_links
 from ..utils.tokens import untokenize
 from ..settings import TRACKING_LINKS

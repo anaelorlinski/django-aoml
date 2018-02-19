@@ -6,25 +6,6 @@ from ..models import Link
 from ..settings import USE_PRETTIFY
 from ..settings import BS_PARSER
 
-
-def body_insertion(content, insertion, end=False):
-    """Insert an HTML content into the body HTML node"""
-    soup = BeautifulSoup(content, BS_PARSER)
-    insertion = BeautifulSoup(insertion, BS_PARSER)
-
-    if end:
-        for c in insertion.body.children:
-            soup.body.append(c)
-    else:
-        for c in insertion.body.children:
-            soup.body.insert(0, c)
-
-    if USE_PRETTIFY:
-        return soup.body.prettify()
-    else:
-        return soup.body.encode()
-
-
 def track_links(content, context):
     """Convert all links in the template for the user
     to track his navigation"""

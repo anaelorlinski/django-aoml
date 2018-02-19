@@ -31,7 +31,6 @@ from .models import Newsletter
 from .models import ContactMailingStatus
 from .utils.tokens import tokenize
 from .utils.newsletter import track_links
-from .utils.newsletter import body_insertion
 from .settings import TRACKING_LINKS
 from .settings import TRACKING_IMAGE
 from .settings import TRACKING_IMAGE_FORMAT
@@ -44,6 +43,8 @@ from .settings import \
      RESTART_CONNECTION_BETWEEN_SENDING
 
 
+# this is needed to so the newletter is sent in 7bit plain text instead of base64 blob
+# better for debugging
 from email import charset
 charset.add_charset('utf-8', charset.SHORTEST, charset.QP)
 
