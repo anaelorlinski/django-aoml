@@ -241,6 +241,9 @@ class Link(models.Model):
     def __str__(self):
         return self.title
 
+    def __lt__(self, other):
+        return self.url < other.url
+
     class Meta:
         ordering = ('-creation_date',)
         verbose_name = _('link')
