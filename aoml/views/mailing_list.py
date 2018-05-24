@@ -14,6 +14,11 @@ def view_mailinglist_unsubscribe(request, slug, uidb36, token):
     newsletter = get_object_or_404(Newsletter, slug=slug)
     contact = untokenize(uidb36, token)
 
+    # flag the contact as unsubscribed
+    if not contact.unsubscribed:
+        contact.unsubscribed = True
+        contact.save()
+
     already_unsubscribed = contact not in newsletter.mailing_list.subscribers.all()
 
     if request.POST.get('email') and not already_unsubscribed:

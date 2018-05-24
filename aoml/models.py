@@ -107,6 +107,8 @@ class Contact(models.Model):
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
     modification_date = models.DateTimeField(_('modification date'), auto_now=True)
 
+    unsubscribed = models.BooleanField(_('unsubscribed'), default=False)
+
     def subscriptions(self):
         """Return the user subscriptions"""
         return MailingList.objects.filter(subscribers=self)

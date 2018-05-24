@@ -24,9 +24,10 @@ class MailingListForm(Form):
 
 class ContactAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('email', 'tester',
+    list_display = ('email', 'tester', 'unsubscribed',
                     'total_subscriptions', 'creation_date', 'related_object_admin')
-    list_filter = ('tester', 'creation_date', 'modification_date')
+    list_filter = ('tester', 'creation_date', 'modification_date', 'unsubscribed')
+    list_editable = ('unsubscribed',)
     search_fields = ('email', )
     fieldsets = ((None, {'fields': ('email', )}),
                  (_('Status'), {'fields': ('tester',)}),

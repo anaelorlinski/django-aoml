@@ -25,7 +25,6 @@ class MailingListSubscriptionForm(forms.ModelForm):
             email=data['email'])
 
         mailing_list.subscribers.add(contact)
-        mailing_list.unsubscribers.remove(contact)
 
     class Meta:
         model = Contact
@@ -50,4 +49,3 @@ class MailingListSubscriptionForm(forms.ModelForm):
 #
 #        for mailing_list in data['mailing_lists']:
 #            mailing_list.subscribers.add(contact)
-#            mailing_list.unsubscribers.remove(contact)

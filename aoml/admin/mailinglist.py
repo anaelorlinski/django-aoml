@@ -29,6 +29,12 @@ class MailingListAdmin(admin.ModelAdmin):
     actions_on_top = False
     actions_on_bottom = True
 
+    # filter the contacts excluding the ones with unsubscribed flag
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "subscribers":
+            kwargs["queryset"] = Contact.objects.filter(unsubscribed=False)
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def merge_mailinglist(self, request, queryset):
         """Merge multiple mailing list"""
         if queryset.count() == 1:
