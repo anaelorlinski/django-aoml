@@ -1,6 +1,6 @@
 """Utils for newsletter"""
 from bs4 import BeautifulSoup
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from ..models import Link
 from ..settings import USE_PRETTIFY

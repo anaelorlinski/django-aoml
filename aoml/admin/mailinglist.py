@@ -4,7 +4,7 @@ from datetime import datetime
 from django.contrib import admin
 from django.conf.urls import url
 from django.utils.encoding import smart_str
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseRedirect

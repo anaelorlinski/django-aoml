@@ -6,7 +6,7 @@ from datetime import datetime
 
 from django.contrib import admin
 from django.conf.urls import url
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import render
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _

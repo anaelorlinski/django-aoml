@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from django.db import models
 from django.utils.encoding import smart_str
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -100,7 +100,7 @@ class Contact(models.Model):
     email = models.EmailField(_('email'), unique=True)
     tester = models.BooleanField(_('contact tester'), default=False)
     
-    content_type = models.ForeignKey(ContentType, blank=True, null=True)
+    content_type = models.ForeignKey(ContentType, blank=True, null=True, on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
@@ -185,12 +185,12 @@ class Newsletter(models.Model):
                                default=_('<body>\n<!-- Edit your newsletter here -->\n</body>'))
 
 
-    mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'))
+    mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'), on_delete=models.CASCADE)
     test_contacts = models.ManyToManyField(Contact, verbose_name=_('test contacts'),
                                            blank=True)
 
     server = models.ForeignKey(SMTPServer, verbose_name=_('smtp server'),
-                               default=1)
+                               default=1, on_delete=models.CASCADE)
     header_sender = models.CharField(_('sender'), max_length=255,
                                      default=DEFAULT_HEADER_SENDER)
     header_reply = models.CharField(_('reply to'), max_length=255,
@@ -207,17 +207,14 @@ class Newsletter(models.Model):
     def mails_sent(self):
         return self.contactmailingstatus_set.filter(status=ContactMailingStatus.SENT).count()
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('newsletter_newsletter_preview', (self.slug,))
+        return reverse('newsletter_newsletter_preview', args=[self.slug,])
 
-    @models.permalink
     def get_historic_url(self):
-        return ('newsletter_newsletter_historic', (self.slug,))
+        return reverse('newsletter_newsletter_historic', args=[self.slug,])
 
-    @models.permalink
     def get_statistics_url(self):
-        return ('newsletter_newsletter_statistics', (self.slug,))
+        return reverse('newsletter_newsletter_statistics', args=[self.slug,])
 
     def __str__(self):
         return self.title
@@ -261,7 +258,7 @@ class Attachment(models.Model):
 
     """Attachment file in a newsletter"""
 
-    newsletter = models.ForeignKey(Newsletter, verbose_name=_('newsletter'))
+    newsletter = models.ForeignKey(Newsletter, verbose_name=_('newsletter'), on_delete=models.CASCADE)
     title = models.CharField(_('title'), max_length=255)
     file_attachment = models.FileField(_('file to attach'), max_length=255,
                                        upload_to=get_newsletter_storage_path)
@@ -299,11 +296,11 @@ class ContactMailingStatus(models.Model):
                       (UNSUBSCRIPTION, _('unsubscription')),
                       )
 
-    newsletter = models.ForeignKey(Newsletter, verbose_name=_('newsletter'))
-    contact = models.ForeignKey(Contact, verbose_name=_('contact'))
+    newsletter = models.ForeignKey(Newsletter, verbose_name=_('newsletter'), on_delete=models.CASCADE)
+    contact = models.ForeignKey(Contact, verbose_name=_('contact'), on_delete=models.CASCADE)
     status = models.IntegerField(_('status'), choices=STATUS_CHOICES)
     link = models.ForeignKey(Link, verbose_name=_('link'),
-                             blank=True, null=True)
+                             blank=True, null=True, on_delete=models.SET_NULL)
 
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
 
