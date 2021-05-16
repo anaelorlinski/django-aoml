@@ -25,7 +25,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.utils.encoding import smart_text
 from django.utils import timezone
-from django.utils.text import mark_safe
+from django.utils.safestring import mark_safe
 
 from .models import Newsletter
 from .models import ContactMailingStatus

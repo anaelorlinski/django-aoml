@@ -37,5 +37,6 @@ setup(name='aoml',
                         'django',
                         'vobject',
                         'xlwt',
-                        'xlrd'],
+                        'xlrd',
+                        'premailer'],
       dependency_links=[])
