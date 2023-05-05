@@ -34,10 +34,10 @@ class ExcelResponse(HttpResponse):
             for value in row:
                 if not isinstance(value, str):
                     value = str(value)
-                value = value.encode(encoding)
-                out_row.append(value.replace('"', '""'))
-            output.write('"%s"\n' %
-                            '","'.join(out_row))
+                value = value.replace('"', '""')
+                out_row.append(value)
+            output.write(('"%s"\n' %
+                            '","'.join(out_row)))
         content_type = 'text/csv'
         file_ext = 'csv'
         output.seek(0)

@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseRedirect
+from django.utils.safestring import mark_safe
 
 from ..models import Contact
 from ..models import MailingList
@@ -59,9 +60,9 @@ class MailingListAdmin(admin.ModelAdmin):
 
     def exportation_links(self, mailinglist):
         """Display links for exportation"""
-        return '<a href="%s">%s</a>' % (
+        return mark_safe('<a href="%s">%s</a>' % (
             reverse('admin:newsletter_mailinglist_export_csv',
-                    args=[mailinglist.pk]), _('CSV'))
+                    args=[mailinglist.pk]), _('CSV')))
     exportation_links.allow_tags = True
     exportation_links.short_description = _('Export')
 
