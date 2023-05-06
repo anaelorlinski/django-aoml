@@ -17,11 +17,6 @@ def view_mailinglist_unsubscribe(request, slug, uidb36, token):
     newsletter = get_object_or_404(Newsletter, slug=slug)
     contact = untokenize(uidb36, token)
 
-    # flag the contact as unsubscribed
-    if not contact.unsubscribed:
-        contact.unsubscribed = True
-        contact.save()
-
     already_unsubscribed = contact in newsletter.mailing_list.unsubscribers.all()
 
     if request.POST.get('email') and not already_unsubscribed:
@@ -70,15 +65,13 @@ def view_contact_subscribe(request):
         try:
             err = "decoding json"
             j = json.loads(request.body)
-            err = "missing/wrong mailing_list_id"
-            mailing_list = get_object_or_404(MailingList, id=j['mailing_list_id'])
+            err = "missing/wrong mailing_list"
+            mailing_list = get_object_or_404(MailingList, name=j['mailing_list'])
             err = "missing/wrong email"
             contact, created = Contact.objects.get_or_create(email=j['email'])
-            if not created and contact.unsubscribed:
-                contact.unsubscribed = False
-                contact.save()
 
             mailing_list.subscribers.add(contact)
+            mailing_list.unsubscribers.remove(contact)
         except:
             return HttpResponse(json.dumps({"status":"KO", "error":err}), content_type='application/json')
         
