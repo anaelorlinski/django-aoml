@@ -1,12 +1,12 @@
 """Urls for the . statistics"""
-from django.conf.urls import url
+from django.urls import re_path
 from ..views.statistics import *
 
 urlpatterns = [
-                       url(r'^(?P<slug>[-\w]+)/$',
+                       re_path(r'^(?P<slug>[-\w]+)/$',
                            view_newsletter_statistics,
                            name='newsletter_newsletter_statistics'),
-                       url(r'^report/(?P<slug>[-\w]+)/$',
+                       re_path(r'^report/(?P<slug>[-\w]+)/$',
                            view_newsletter_report,
                            name='newsletter_newsletter_report'),
 ]

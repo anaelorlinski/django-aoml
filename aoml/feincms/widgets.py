@@ -1,14 +1,14 @@
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from emencia.django.newsletter.models import MailingList
 
 
 class SubscribeWidget(models.Model):
     title = models.CharField(_('title'), max_length=50, blank=True)
-    mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'))
+    mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE, verbose_name=_('mailing list'))
 
     class Meta:
         abstract = True

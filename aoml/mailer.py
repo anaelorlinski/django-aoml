@@ -23,7 +23,7 @@ from html2text import html2text as html2text_orig
 #from django.contrib.sites.models import Site
 from django.template import Context, Template
 from django.template.loader import render_to_string
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
@@ -98,13 +98,13 @@ class NewsLetterSender(object):
         message = MIMEMultipart()
 
         message['Subject'] = self.build_title_content(contact)
-        message['From'] = smart_text(self.newsletter.header_sender)
-        message['Reply-to'] = smart_text(self.newsletter.header_reply)
+        message['From'] = smart_str(self.newsletter.header_sender)
+        message['Reply-to'] = smart_str(self.newsletter.header_reply)
         message['To'] = contact.mail_format()
 
         message_alt = MIMEMultipart('alternative')
-        message_alt.attach(MIMEText(smart_text(content_text), 'plain', 'UTF-8'))
-        message_alt.attach(MIMEText(smart_text(content_html), 'html', 'UTF-8'))
+        message_alt.attach(MIMEText(smart_str(content_text), 'plain', 'UTF-8'))
+        message_alt.attach(MIMEText(smart_str(content_html), 'html', 'UTF-8'))
         message.attach(message_alt)
 
         for attachment in self.attachments:
@@ -179,7 +179,7 @@ class NewsLetterSender(object):
         if TRACKING_LINKS:
             content = track_links(content, context)
         
-        return smart_text(content)
+        return smart_str(content)
 
     def update_newsletter_status(self):
         """Update the status of the newsletter"""
@@ -265,7 +265,7 @@ class Mailer(NewsLetterSender):
 
             try:
                 message = self.build_message(contact)
-                self.smtp.sendmail(smart_text(self.newsletter.header_sender),
+                self.smtp.sendmail(smart_str(self.newsletter.header_sender),
                                    contact.email,
                                    message.as_string())
             except Exception as e:

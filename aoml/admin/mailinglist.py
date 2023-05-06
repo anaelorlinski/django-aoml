@@ -2,11 +2,11 @@
 from datetime import datetime
 
 from django.contrib import admin
-from django.conf.urls import url
+from django.urls import path
 from django.utils.encoding import smart_str
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
@@ -28,6 +28,9 @@ class MailingListAdmin(admin.ModelAdmin):
     actions_on_top = False
     actions_on_bottom = True
 
+    @admin.action(
+        description=_('Merge selected mailinglists')
+    )
     def merge_mailinglist(self, request, queryset):
         """Merge multiple mailing list"""
         if queryset.count() == 1:
@@ -48,15 +51,15 @@ class MailingListAdmin(admin.ModelAdmin):
         self.message_user(request, _('%s succesfully created by merging.') % new_mailing)
         return HttpResponseRedirect(reverse('admin:aoml_mailinglist_change',
                                             args=[new_mailing.pk]))
-    merge_mailinglist.short_description = _('Merge selected mailinglists')
 
+    @admin.display(
+        description=_('Export')
+    )
     def exportation_links(self, mailinglist):
         """Display links for exportation"""
         return mark_safe('<a href="%s">%s</a>' % (
             reverse('admin:newsletter_mailinglist_export_csv',
                     args=[mailinglist.pk]), _('CSV')))
-    exportation_links.allow_tags = True
-    exportation_links.short_description = _('Export')
 
     def export_csv(self, request, mailinglist_id):
         """Export subscribers in the mailing in CSV"""
@@ -66,7 +69,7 @@ class MailingListAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urls = super(MailingListAdmin, self).get_urls()
-        my_urls = [ url(r'^export/csv/(?P<mailinglist_id>\d+)/$',
+        my_urls = [ path('export/csv/<int:mailinglist_id>/',
                                self.admin_site.admin_view(self.export_csv),
                                name='newsletter_mailinglist_export_csv')]
         return my_urls + urls

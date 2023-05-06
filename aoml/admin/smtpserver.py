@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from ..models import SMTPServer
 
@@ -41,6 +41,9 @@ class SMTPServerAdmin(admin.ModelAdmin):
     actions_on_top = False
     actions_on_bottom = True
 
+    @admin.action(
+        description=_('Check connection')
+    )
     def check_connections(self, request, queryset):
         """Check the SMTP connection"""
         message = '%s connection %s'
@@ -55,4 +58,3 @@ class SMTPServerAdmin(admin.ModelAdmin):
             except:
                 status = 'KO'
             self.message_user(request, message % (server.__str__(), status))
-    check_connections.short_description = _('Check connection')

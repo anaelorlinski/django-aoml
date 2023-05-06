@@ -17,7 +17,6 @@ MEDIA_URL = 'http://localhost:8000/'
 SECRET_KEY = 'jkjf7878fsdok-|767sjdvjsm_qcskhvs$:?shf67dd66%&sfj'
 
 USE_I18N = True
-USE_L10N = True
 
 SITE_ID = 1
 

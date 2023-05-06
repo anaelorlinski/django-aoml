@@ -1,8 +1,8 @@
-from django.conf.urls import url, include
+from django.urls import include, path
 
 urlpatterns = [
-        url(r'^mailing/', include('aoml.urls.mailing_list')),
-        url(r'^tracking/', include('aoml.urls.tracking')),
-        url(r'^statistics/', include('aoml.urls.statistics')),
-        url(r'^', include('aoml.urls.newsletter')),
+        path('m/', include('aoml.urls.mailing_list')),
+        path('t/', include('aoml.urls.tracking')),
+        path('s/', include('aoml.urls.statistics')),
+        path('', include('aoml.urls.newsletter')),
 ]

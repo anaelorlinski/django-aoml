@@ -1,12 +1,12 @@
 """Urls for the . Newsletter"""
-from django.conf.urls import url
+from django.urls import re_path
 from ..views.newsletter import *
 
 urlpatterns = [
-                       url(r'^preview/(?P<slug>[-\w]+)/$',
+                       re_path(r'^preview/(?P<slug>[-\w]+)/$',
                            view_newsletter_preview,
                            name='newsletter_newsletter_preview'),
-                       url(r'^(?P<slug>[-\w]+)/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$',
+                       re_path(r'^(?P<slug>[-\w]+)/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$',
                            view_newsletter_contact,
                            name='newsletter_newsletter_contact'),
 ]

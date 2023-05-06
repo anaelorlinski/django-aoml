@@ -5,11 +5,11 @@ from django.conf import settings
 from datetime import datetime
 
 from django.contrib import admin
-from django.conf.urls import url
+from django.urls import path
 from django.urls import reverse
 from django.shortcuts import render
 from django.template import RequestContext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponseRedirect
 from django.contrib.admin.views.main import ChangeList
 from django.db import DatabaseError
@@ -50,6 +50,9 @@ class ContactAdmin(admin.ModelAdmin):
     actions_on_bottom = True
     inlines = [MailingListSubscribersInline, MailingListUnsubscribersInline]
 
+    @admin.display(
+        description=_('Related object')
+    )
     def related_object_admin(self, contact):
         """Display link to related object's admin"""
         if contact.content_type and contact.object_id:
@@ -60,20 +63,22 @@ class ContactAdmin(admin.ModelAdmin):
                                                 admin_url,
                                                 contact.content_object.__str__())
         return _('No relative object')
-    related_object_admin.allow_tags = True
-    related_object_admin.short_description = _('Related object')
 
+    @admin.display(
+        description=_('MailingList subscriptions')
+    )
     def subscriptions(self, contact):
         """Display user subscriptions"""
         subscriptions = contact.subscriptions().values_list('name', flat = True)
         return list(subscriptions)
-    subscriptions.short_description = _('MailingList subscriptions')
 
+    @admin.display(
+        description=_('MailingList unsubscriptions')
+    )
     def unsubscriptions(self, contact):
         """Display user unsubscriptions"""
         unsubscriptions = contact.unsubscriptions().values_list('name', flat = True)
         return list(unsubscriptions)
-    unsubscriptions.short_description = _('MailingList unsubscriptions')
 
     def export_excel(self, request, queryset, export_name=''):
         """Export selected contact in Excel"""
@@ -130,13 +135,13 @@ class ContactAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(ContactAdmin, self).get_urls()
         my_urls = [
-                           url(r'^import/$',
+                           path('import/',
                                self.admin_site.admin_view(self.importation),
                                name='newsletter_contact_import'),
-                           url(r'^create_mailinglist/$',
+                           path('create_mailinglist/',
                                self.admin_site.admin_view(self.creation_mailinglist),
                                name='newsletter_contact_create_mailinglist'),
-                           url(r'^export/excel/$',
+                           path('export/excel/',
                                self.admin_site.admin_view(self.exportation_excel),
                                name='newsletter_contact_export_excel'),]
         return my_urls + urls

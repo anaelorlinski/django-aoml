@@ -3,7 +3,7 @@
 from django import forms
 from django.db.models import Q
 from django.contrib import admin
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 
 from ..models import Contact
@@ -90,23 +90,28 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
 
         newsletter.save()
 
+    @admin.display(
+        description=_('Historic')
+    )
     def historic_link(self, newsletter):
         """Display link for historic"""
         if newsletter.contactmailingstatus_set.count():
             return mark_safe('<a href="%s">%s</a>' % (newsletter.get_historic_url(), _('View historic')))
         return _('Not available')
-    historic_link.allow_tags = True
-    historic_link.short_description = _('Historic')
 
+    @admin.display(
+        description=_('Statistics')
+    )
     def statistics_link(self, newsletter):
         """Display link for statistics"""
         if newsletter.status == Newsletter.SENDING or \
            newsletter.status == Newsletter.SENT:
             return mark_safe('<a href="%s">%s</a>' % (newsletter.get_statistics_url(), _('View statistics')))
         return _('Not available')
-    statistics_link.allow_tags = True
-    statistics_link.short_description = _('Statistics')
 
+    @admin.action(
+        description=_('Send test email')
+    )
     def send_mail_test(self, request, queryset):
         """Send newsletter in test"""
         for newsletter in queryset:
@@ -120,8 +125,10 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
                 self.message_user(request, _('%s succesfully sent.') % newsletter)
             else:
                 self.message_user(request, _('No test contacts assigned for %s.') % newsletter)
-    send_mail_test.short_description = _('Send test email')
 
+    @admin.action(
+        description=_('Make ready to send')
+    )
     def make_ready_to_send(self, request, queryset):
         """Make newsletter ready to send"""
         queryset = queryset.filter(status=Newsletter.DRAFT)
@@ -129,8 +136,10 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
             newsletter.status = Newsletter.WAITING
             newsletter.save()
         self.message_user(request, _('%s newletters are ready to send') % queryset.count())
-    make_ready_to_send.short_description = _('Make ready to send')
 
+    @admin.action(
+        description=_('Cancel the sending')
+    )
     def make_cancel_sending(self, request, queryset):
         """Cancel the sending of newsletters"""
         queryset = queryset.filter(Q(status=Newsletter.WAITING) |
@@ -139,7 +148,6 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
             newsletter.status = Newsletter.CANCELED
             newsletter.save()
         self.message_user(request, _('%s newletters are cancelled') % queryset.count())
-    make_cancel_sending.short_description = _('Cancel the sending')
 
 
 if USE_TINYMCE:
