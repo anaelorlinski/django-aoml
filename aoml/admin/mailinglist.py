@@ -16,25 +16,17 @@ from ..utils.excel import ExcelResponse
 
 class MailingListAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('creation_date', 'name', 'description',
-                    'subscribers_count',
+    list_display = ('name', 'creation_date',
+                    'subscribers_count', 'unsubscribers_count',
                     'exportation_links')
-    list_editable = ('name', 'description')
     list_filter = ('creation_date', 'modification_date')
     search_fields = ('name', 'description',)
-    filter_horizontal = ['subscribers',]
+    filter_horizontal = ['subscribers', 'unsubscribers',]
     fieldsets = ((None, {'fields': ('name', 'description',)}),
-                 (None, {'fields': ('subscribers',)}),
                  )
     actions = ['merge_mailinglist']
     actions_on_top = False
     actions_on_bottom = True
-
-    # filter the contacts excluding the ones with unsubscribed flag
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "subscribers":
-            kwargs["queryset"] = Contact.objects.filter(unsubscribed=False)
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def merge_mailinglist(self, request, queryset):
         """Merge multiple mailing list"""

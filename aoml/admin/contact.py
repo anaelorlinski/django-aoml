@@ -19,15 +19,26 @@ from ..models import MailingList
 from ..utils.importation import text_contacts_import
 from ..utils.excel import ExcelResponse
 
+class MailingListSubscribersInline(admin.TabularInline):
+    model = MailingList.subscribers.through
+    verbose_name = "Subscription"
+    verbose_name_plural = "Subscriptions"
+    extra = 0
+
+class MailingListUnsubscribersInline(admin.TabularInline):
+    model = MailingList.unsubscribers.through
+    verbose_name = "Unsubscription"
+    verbose_name_plural = "Unsubscriptions"
+    extra = 0
+
 class MailingListForm(Form):
     mailinglist = ModelChoiceField(queryset=MailingList.objects.all().order_by('name'))
 
 class ContactAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('email', 'tester', 'unsubscribed',
-                    'total_subscriptions', 'creation_date', 'related_object_admin')
-    list_filter = ('tester', 'creation_date', 'modification_date', 'unsubscribed')
-    list_editable = ('unsubscribed',)
+    list_display = ('email', 'tester',
+                    'subscriptions', 'unsubscriptions')
+    list_filter = ('tester', 'creation_date', 'modification_date')
     search_fields = ('email', )
     fieldsets = ((None, {'fields': ('email', )}),
                  (_('Status'), {'fields': ('tester',)}),
@@ -37,6 +48,7 @@ class ContactAdmin(admin.ModelAdmin):
     actions = ['create_mailinglist', 'export_excel']
     actions_on_top = False
     actions_on_bottom = True
+    inlines = [MailingListSubscribersInline, MailingListUnsubscribersInline]
 
     def related_object_admin(self, contact):
         """Display link to related object's admin"""
@@ -51,11 +63,17 @@ class ContactAdmin(admin.ModelAdmin):
     related_object_admin.allow_tags = True
     related_object_admin.short_description = _('Related object')
 
-    def total_subscriptions(self, contact):
-        """Display user subscriptions to unsubscriptions"""
-        subscriptions = contact.subscriptions().count()
-        return '%s' % (subscriptions)
-    total_subscriptions.short_description = _('Total subscriptions')
+    def subscriptions(self, contact):
+        """Display user subscriptions"""
+        subscriptions = contact.subscriptions().values_list('name', flat = True)
+        return list(subscriptions)
+    subscriptions.short_description = _('MailingList subscriptions')
+
+    def unsubscriptions(self, contact):
+        """Display user unsubscriptions"""
+        unsubscriptions = contact.unsubscriptions().values_list('name', flat = True)
+        return list(unsubscriptions)
+    unsubscriptions.short_description = _('MailingList unsubscriptions')
 
     def export_excel(self, request, queryset, export_name=''):
         """Export selected contact in Excel"""
@@ -65,7 +83,7 @@ class ContactAdmin(admin.ModelAdmin):
     export_excel.short_description = _('Export contacts in Excel')
 
     def importation(self, request):
-        """Import contacts from a VCard"""
+        """Import contacts"""
         opts = self.model._meta
 
         form = MailingListForm()

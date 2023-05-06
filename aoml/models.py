@@ -107,11 +107,13 @@ class Contact(models.Model):
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
     modification_date = models.DateTimeField(_('modification date'), auto_now=True)
 
-    unsubscribed = models.BooleanField(_('unsubscribed'), default=False)
-
     def subscriptions(self):
         """Return the user subscriptions"""
         return MailingList.objects.filter(subscribers=self)
+
+    def unsubscriptions(self):
+        """Return the user unsubscriptions"""
+        return MailingList.objects.filter(unsubscribers=self)
 
     def mail_format(self):
         return self.email
@@ -139,6 +141,10 @@ class MailingList(models.Model):
 
     subscribers = models.ManyToManyField(Contact, verbose_name=_('subscribers'),
                                          related_name='mailinglist_subscriber', blank=True)
+
+    unsubscribers = models.ManyToManyField(Contact, verbose_name=_('unsubscribers'),
+                                           related_name='mailinglist_unsubscriber',
+                                           blank=True)
     
     creation_date = models.DateTimeField(_('creation date'), auto_now_add=True)
     modification_date = models.DateTimeField(_('modification date'), auto_now=True)
@@ -147,8 +153,13 @@ class MailingList(models.Model):
         return self.subscribers.all().count()
     subscribers_count.short_description = _('subscribers')
 
+    def unsubscribers_count(self):
+        return self.unsubscribers.all().count()
+    unsubscribers_count.short_description = _('unsubscribers')
+
     def expedition_set(self):
-        return self.subscribers.all()
+        unsubscribers_id = self.unsubscribers.values_list('id', flat=True)
+        return self.subscribers.exclude(id__in=unsubscribers_id)
 
     def __str__(self):
         return self.name

@@ -27,8 +27,8 @@ class AttachmentAdminInline(admin.TabularInline):
 
 class BaseNewsletterAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('title', 'mailing_list', 'server', 'status',
-                    'sending_date', 'creation_date', 'modification_date',
+    list_display = ('title', 'mailing_list', 'status',
+                    'sending_date',
                     'historic_link', 'statistics_link')
     list_filter = ('status', 'sending_date', 'creation_date', 'modification_date')
     search_fields = ('title', 'content', 'header_sender', 'header_reply')

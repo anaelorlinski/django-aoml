@@ -25,6 +25,7 @@ class MailingListSubscriptionForm(forms.ModelForm):
             email=data['email'])
 
         mailing_list.subscribers.add(contact)
+        mailing_list.unsubscribers.remove(contact)
 
     class Meta:
         model = Contact

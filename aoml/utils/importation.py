@@ -39,7 +39,7 @@ def create_contacts(contact_dicts, dest_mailing_list):
     
     for contact_dict in contact_dicts:
         contact, created = create_contact(contact_dict)
-        if contact and not contact.unsubscribed:
+        if contact:
             dest_mailing_list.subscribers.add(contact)
             inserted += int(created)
 
