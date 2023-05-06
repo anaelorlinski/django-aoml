@@ -13,7 +13,7 @@ from smtplib import SMTPRecipientsRefused
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-#from email.mime.Encoders import encode_base64
+from email.encoders import encode_base64
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
@@ -39,8 +39,7 @@ from .settings import UNIQUE_KEY_CHAR_SET
 from .settings import INCLUDE_UNSUBSCRIPTION
 from .settings import SLEEP_BETWEEN_SENDING
 from .settings import DOMAIN
-from .settings import \
-     RESTART_CONNECTION_BETWEEN_SENDING
+from .settings import RESTART_CONNECTION_BETWEEN_SENDING
 
 
 # this is needed to so the newletter is sent in 7bit plain text instead of base64 blob

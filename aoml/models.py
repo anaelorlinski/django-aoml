@@ -3,7 +3,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from django.db import models
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_str, force_str
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -261,7 +261,7 @@ class Link(models.Model):
 
 
 def get_newsletter_storage_path(instance, filename):
-    filename = force_unicode(filename)
+    filename = force_str(filename)
     return '/'.join([BASE_PATH, instance.newsletter.slug, filename])
 
 
