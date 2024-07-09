@@ -26,6 +26,7 @@ from django.template.loader import render_to_string
 from django.utils.encoding import smart_str
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 
 from .models import Newsletter
 from .models import ContactMailingStatus
@@ -100,6 +101,16 @@ class NewsLetterSender(object):
         message['From'] = smart_str(self.newsletter.header_sender)
         message['Reply-to'] = smart_str(self.newsletter.header_reply)
         message['To'] = contact.mail_format()
+        
+        uidb36, token = tokenize(contact)
+        unsubscribe_link = reverse("newsletter_mailinglist_oneclick_unsubscribe", 
+                                   kwargs={"slug": self.newsletter.slug,
+                                           "uidb36":uidb36,
+                                           "token":token})
+        unsubscribe_link = "https://" + DOMAIN + unsubscribe_link
+        
+        message['List-Unsubscribe'] = "<{}>".format(unsubscribe_link)
+        message['List-Unsubscribe-Post'] = "List-Unsubscribe=One-Click"
 
         message_alt = MIMEMultipart('alternative')
         message_alt.attach(MIMEText(smart_str(content_text), 'plain', 'UTF-8'))

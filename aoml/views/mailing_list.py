@@ -30,6 +30,24 @@ def view_mailinglist_unsubscribe(request, slug, uidb36, token):
                               {'email': contact.email,
                                'already_unsubscribed': already_unsubscribed})
 
+def view_mailinglist_oneclick_unsubscribe(request, slug, uidb36, token):
+    """OneClick Unsubscribe a contact to a mailing list"""
+    newsletter = get_object_or_404(Newsletter, slug=slug)
+    contact = untokenize(uidb36, token)
+
+    already_unsubscribed = contact in newsletter.mailing_list.unsubscribers.all()
+
+    if request.method == 'POST' and not already_unsubscribed:
+        newsletter.mailing_list.unsubscribers.add(contact)
+        newsletter.mailing_list.save()
+        already_unsubscribed = True
+        ContactMailingStatus.objects.create(newsletter=newsletter, contact=contact,
+                                            status=ContactMailingStatus.UNSUBSCRIPTION)
+
+    return render(request,'newsletter/mailing_list_unsubscribe.html',
+                              {'email': contact.email,
+                               'already_unsubscribed': already_unsubscribed})
+
 
 def view_mailinglist_subscribe(request, form_class, mailing_list_id=None):
     """
