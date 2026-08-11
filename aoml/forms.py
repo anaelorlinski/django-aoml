@@ -5,6 +5,49 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import Contact
 from .models import MailingList
+from .utils.segmentation import DEFAULT_INACTIVITY_MONTHS
+from .utils.segmentation import SCOPE_ANY
+from .utils.segmentation import SCOPE_CHOICES
+
+
+class MailingListSegmentationForm(forms.Form):
+    """Criteria for splitting a mailing list between openers and non openers."""
+
+    months = forms.IntegerField(
+        label=_('Months'), min_value=1, max_value=240,
+        initial=DEFAULT_INACTIVITY_MONTHS,
+        help_text=_('Length of the period looked at, ending today.'))
+
+    scope = forms.ChoiceField(
+        label=_('Openings counted'), choices=SCOPE_CHOICES, initial=SCOPE_ANY,
+        help_text=_('A contact subscribed to several lists is engaged if he '
+                    'opens any of them, so "any newsletter" is the safe '
+                    'measure for a cleanup. Restrict to this list only to '
+                    'measure the interest for this list in particular.'))
+
+    include_unsubscribers = forms.BooleanField(
+        label=_('Include unsubscribers'), required=False, initial=False,
+        help_text=_('Off, the contacts who unsubscribed from this list are '
+                    'left out of both segments.'))
+
+    include_never_mailed = forms.BooleanField(
+        label=_('Treat the contacts never mailed as non openers'),
+        required=False, initial=False,
+        help_text=_('Off, the contacts who received nothing during the period '
+                    '(recent subscribers, typically) are left out: they had no '
+                    'occasion to open anything.'))
+
+    name_prefix = forms.CharField(
+        label=_('Name of the created lists'), required=False, max_length=200,
+        help_text=_('Prefix of the two created mailing lists. Empty, the name '
+                    'of the current list is used.'))
+
+    def criteria(self):
+        """The submitted values, or the defaults when the form has not been
+        submitted yet, so the page can show a result on first display."""
+        if self.is_bound and self.is_valid():
+            return self.cleaned_data
+        return dict((name, field.initial) for name, field in self.fields.items())
 
 
 class MailingListSubscriptionForm(forms.ModelForm):

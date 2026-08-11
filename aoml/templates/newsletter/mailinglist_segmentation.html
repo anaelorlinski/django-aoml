@@ -1,0 +1,94 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+{% if not is_popup %}
+<div class="breadcrumbs">
+     <a href="{{ root_path }}">{% trans "Home" %}</a> &rsaquo;
+     <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a> &rsaquo;
+     <a href="{% url 'admin:aoml_mailinglist_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     <a href="{% url 'admin:aoml_mailinglist_change' mailinglist.pk %}">{{ mailinglist.name }}</a> &rsaquo;
+     {% trans 'Activity' %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}" />
+<style type="text/css">
+  .segments { border-collapse: collapse; margin: 1em 0; width: 100%; }
+  .segments th, .segments td { padding: 8px 12px; text-align: left;
+                               border-bottom: 1px solid var(--hairline-color, #eee); }
+  .segments td.number { text-align: right; white-space: nowrap; }
+  .segments .help { font-weight: normal; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+  <form action="" method="post">
+    {% csrf_token %}
+
+    <fieldset class="module aligned">
+      <h2>{% trans "Period looked at" %}</h2>
+      {% for field in form %}
+      <div class="form-row{% if field.errors %} errors{% endif %}">
+        {{ field.errors }}
+        <div>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      <div class="submit-row" style="text-align: left;">
+        <input type="submit" name="preview" value="{% trans "Recompute" %}" />
+      </div>
+    </fieldset>
+
+    <fieldset class="module aligned">
+      <h2>
+        {% blocktrans with name=mailinglist.name %}Activity of {{ name }}{% endblocktrans %}
+      </h2>
+      <p class="help">
+        {% blocktrans with start=cutoff|date:"DATE_FORMAT" total=audience_count %}Openings since {{ start }}, over {{ total }} contacts.{% endblocktrans %}
+      </p>
+
+      <table class="segments">
+        <thead>
+          <tr>
+            <th>{% trans "Segment" %}</th>
+            <th class="number">{% trans "Contacts" %}</th>
+            <th class="number">{% trans "Share" %}</th>
+            <th>{% trans "Export" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for segment in segments %}
+          <tr>
+            <th>{{ segment.title }}<br /><span class="help">{{ segment.help }}</span></th>
+            <td class="number">{{ segment.count }}</td>
+            <td class="number">{{ segment.percent }} %</td>
+            <td>
+              <button type="submit" name="export" value="{{ segment.key }}">{% trans "CSV" %}</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </fieldset>
+
+    <fieldset class="module aligned">
+      <h2>{% trans "Create the two mailing lists" %}</h2>
+      <p class="help">
+        {% trans "Two new mailing lists are created, one with the openers and one with the non openers. Nothing is modified in the current list, and no mail is sent." %}
+      </p>
+      <div class="submit-row" style="text-align: left;">
+        <input type="submit" class="default" name="create" value="{% trans "Create the two mailing lists" %}" />
+      </div>
+    </fieldset>
+
+  </form>
+
+</div>
+{% endblock %}
