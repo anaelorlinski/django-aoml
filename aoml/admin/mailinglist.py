@@ -152,7 +152,6 @@ class MailingListAdmin(admin.ModelAdmin):
                    'cutoff': segmentation.cutoff,
                    'audience_count': audience,
                    'segments': segments,
-                   'inactive_total': counts['inactive'] + counts['never_mailed'],
                    'media': self.media + form.media}
 
         return render(request, 'newsletter/mailinglist_segmentation.html', context)

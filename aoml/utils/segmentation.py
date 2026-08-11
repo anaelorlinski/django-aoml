@@ -16,6 +16,7 @@ are kept apart and the caller decides explicitly what to do with them.
 """
 import calendar
 
+from django.db import transaction
 from django.db.models import Max
 from django.db.models import Q
 from django.utils import timezone
@@ -142,6 +143,7 @@ class MailingListSegmentation(object):
             'unsubscribers': self.include_unsubscribers
                              and _(', unsubscribers included') or ''}
 
+    @transaction.atomic
     def create_mailing_lists(self, name_prefix=None, include_never_mailed=False):
         """Create the two fresh lists, and return them as
         ``(active_list, inactive_list)``.

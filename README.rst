@@ -24,7 +24,7 @@ More than a long speech, here the list of the main features :
 
   * Coupling capacities with another django model.
   * Variables can be used in the newsletter's templates.
-  * Mailing list managements (merging, importing...).
+  * Mailing list managements (merging, importing, splitting by activity...).
   * Import/Export of the contact in VCard 3.0.
   * Configurable SMTP servers with flow limit management.
   * Can send newsletter previews.
@@ -69,6 +69,39 @@ That's mean that not all newsletters will be expedied at the end of the command 
 To avoid banishment all the newsletters are not sended in the same time and immediately.
 
 So it is recommanded to create a **cronjob** for launching this command every hours for example.
+
+List cleanup
+------------
+
+A mailing list can be split between the contacts who opened a newsletter over
+the last months and those who did not, to clean it up or to send a last mail to
+the ones about to be dropped.
+
+In the admin, the *Openers / non openers* link of a mailing list, or the *Split
+by newsletter activity* action, opens a page where the period (12 months by
+default) can be changed, the resulting segments exported as CSV, and two fresh
+mailing lists created. The source list is never modified and no mail is sent.
+
+The same thing on the command line, which reports only unless it is asked to
+create the lists ::
+
+  $ python manage.py segment_mailinglist "My list"
+  $ python manage.py segment_mailinglist "My list" --months 6 --create-lists
+  $ python manage.py segment_mailinglist 3 --export inactive > to_drop.csv
+
+Three segments are computed, not two:
+
+  * **openers** : opened or clicked at least one newsletter during the period,
+  * **non openers** : received at least one newsletter during the period and
+    opened none,
+  * **never mailed** : received nothing during the period, typically recent
+    subscribers, and so cannot be judged. They are left out of both created
+    lists unless ``--include-never-mailed`` is given.
+
+By default an opening of *any* newsletter counts, not only of the newsletters
+of this list: a contact subscribed to several lists is engaged if he opens any
+of them. Use ``--scope list`` to measure the interest for one list in
+particular.
 
 Installation
 ============
