@@ -11,7 +11,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Group
 from django.utils import timezone
 
+from django.utils.text import slugify
+
 from .settings import BASE_PATH
+from .settings import DOMAIN
 from .settings import MAILER_HARD_LIMIT
 from .settings import DEFAULT_HEADER_REPLY
 from .settings import DEFAULT_HEADER_SENDER
@@ -139,6 +142,11 @@ class MailingList(models.Model):
     name = models.CharField(_('name'), max_length=255)
     description = models.TextField(_('description'), blank=True)
 
+    list_id = models.CharField(
+        _('List-Id'), max_length=255, blank=True,
+        help_text=_('Overrides the List-Id header, e.g. "soirees.example.com". '
+                    'Leave empty to derive it from the name.'))
+
     subscribers = models.ManyToManyField(Contact, verbose_name=_('subscribers'),
                                          related_name='mailinglist_subscriber', blank=True)
 
@@ -160,6 +168,30 @@ class MailingList(models.Model):
     def expedition_set(self):
         unsubscribers_id = self.unsubscribers.values_list('id', flat=True)
         return self.subscribers.exclude(id__in=unsubscribers_id)
+
+    @property
+    def effective_list_id(self):
+        """
+        The List-Id header value for this list: the override if one is
+        set, otherwise "<slug-of-name>.<domain>".
+
+        This identifies the LIST to mail clients and to Gmail, which is
+        what lets them group a list's mail and offer to unsubscribe from
+        it. It has to be STABLE — a value that changes makes every mail
+        sent before look like it came from a different list, losing
+        whatever reputation the old one had.
+
+        That is the whole reason for the override: the derived default
+        follows the name, and renaming a list in the admin should not
+        silently re-identify it. Set list_id once and the name is free to
+        change afterwards.
+
+        Deliberately not unique across lists. Two lists that are really
+        one audience under two names should be allowed to say so.
+        """
+        if self.list_id:
+            return self.list_id
+        return '{}.{}'.format(slugify(self.name), DOMAIN)
 
     def __str__(self):
         return self.name

@@ -16,13 +16,17 @@ from ..utils.excel import ExcelResponse
 
 class MailingListAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('name', 'creation_date',
+    list_display = ('name', 'effective_list_id', 'creation_date',
                     'subscribers_count', 'unsubscribers_count',
                     'exportation_links')
     list_filter = ('creation_date', 'modification_date')
-    search_fields = ('name', 'description',)
+    search_fields = ('name', 'description', 'list_id',)
     filter_horizontal = ['subscribers', 'unsubscribers',]
-    fieldsets = ((None, {'fields': ('name', 'description',)}),
+    # list_id sits with the name because the two are connected: the
+    # derived default follows the name, so showing them together is what
+    # makes it visible that renaming re-identifies the list unless the
+    # override is set.
+    fieldsets = ((None, {'fields': ('name', 'description', 'list_id',)}),
                  )
     actions = ['merge_mailinglist']
     actions_on_top = False

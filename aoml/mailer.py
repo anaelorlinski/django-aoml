@@ -26,6 +26,7 @@ from django.template.loader import render_to_string
 from django.utils.encoding import smart_str
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 from django.urls import reverse
 
 from .models import Newsletter
@@ -111,6 +112,38 @@ class NewsLetterSender(object):
         
         message['List-Unsubscribe'] = "<{}>".format(unsubscribe_link)
         message['List-Unsubscribe-Post'] = "List-Unsubscribe=One-Click"
+
+        # Which list this belongs to, and that it is a list at all.
+        # List-Id is per mailing list and stable across sends — see
+        # MailingList.effective_list_id.
+        message['List-Id'] = "<{}>".format(
+            self.newsletter.mailing_list.effective_list_id)
+
+        # "list", not "bulk": RFC 3834 §2.2 names exactly this value in
+        # its example of an auto-responder correctly staying quiet —
+        # "the responder might guess that the traffic had arrived from a
+        # mailing list". It is also simply true, where "bulk" is a
+        # description of volume rather than of what this is.
+        #
+        # Precedence is non-standard, and the same RFC says so: "its use
+        # and interpretation vary widely in the wild". The header that
+        # actually earns the auto-reply suppression is List-Id above —
+        # §2.2 again, "a responder MAY ignore any subject message with a
+        # List-* field". This is the belt to that pair of braces.
+        #
+        # Auto-Submitted (RFC 3834 §5.2) is deliberately NOT set: its
+        # auto-generated keyword is for periodic machine output such as
+        # cron jobs and "MUST NOT be used on manually generated
+        # messages". A newsletter someone writes and sends is one.
+        message['Precedence'] = "list"
+
+        # Per-campaign identity for Google Postmaster Tools, so a send
+        # that goes badly shows as THAT campaign rather than as the whole
+        # domain. Google reads the last colon-separated field as the
+        # sender id and the rest as free-form.
+        message['Feedback-ID'] = "{}:{}:aoml".format(
+            self.newsletter.slug,
+            slugify(self.newsletter.mailing_list.name))
 
         message_alt = MIMEMultipart('alternative')
         message_alt.attach(MIMEText(smart_str(content_text), 'plain', 'UTF-8'))
