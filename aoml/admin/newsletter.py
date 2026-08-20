@@ -5,7 +5,6 @@ from django.db import router
 from django.db.models import Q
 from django.contrib.admin.utils import NestedObjects
 from django.contrib.admin.utils import quote
-from django.contrib.admin.utils import display_for_value
 from django.urls import NoReverseMatch
 from django.urls import reverse
 from django.utils.html import format_html
@@ -45,8 +44,6 @@ class NestedObjectsWithoutStatuses(NestedObjects):
 def get_deleted_objects_without_statuses(objs, request, admin_site):
     """Same as django.contrib.admin.utils.get_deleted_objects but using
     NestedObjectsWithoutStatuses."""
-    from django.contrib.admin.options import EMPTY_VALUE_STRING
-
     try:
         obj = objs[0]
     except IndexError:
@@ -72,10 +69,8 @@ def get_deleted_objects_without_statuses(objs, request, admin_site):
                     None, (quote(obj.pk),))
             except NoReverseMatch:
                 return no_edit_link
-            obj_display = display_for_value(str(obj), EMPTY_VALUE_STRING)
             return format_html('{}: <a href="{}">{}</a>',
-                               capfirst(opts.verbose_name), admin_url,
-                               obj_display)
+                               capfirst(opts.verbose_name), admin_url, obj)
         return no_edit_link
 
     to_delete = collector.nested(format_callback)
