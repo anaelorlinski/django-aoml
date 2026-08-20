@@ -1,13 +1,22 @@
 """ModelAdmin for Newsletter"""
 
 from django import forms
+from django.db import router
 from django.db.models import Q
+from django.contrib.admin.utils import NestedObjects
+from django.contrib.admin.utils import quote
+from django.contrib.admin.utils import display_for_value
+from django.urls import NoReverseMatch
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.text import capfirst
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 
 from ..models import Contact
 from ..models import Newsletter
+from ..models import ContactMailingStatus
 from ..models import Attachment
 from ..models import MailingList
 from ..mailer import Mailer
@@ -17,6 +26,65 @@ import urllib.request
 import urllib.parse
 from premailer import Premailer
 from premailer.premailer import PremailerError, ExternalNotFoundError
+
+
+class NestedObjectsWithoutStatuses(NestedObjects):
+    """NestedObjects collector that ignores ContactMailingStatus rows, so
+    they are never instantiated when building the delete confirmation."""
+
+    def related_objects(self, related_model, related_fields, objs):
+        if related_model is ContactMailingStatus:
+            # Return an empty, never-evaluated queryset: Collector.collect()
+            # evaluates the related queryset (``if sub_objs:``) before
+            # cascading, which would load every status in memory.
+            return ContactMailingStatus.objects.none()
+        return super(NestedObjectsWithoutStatuses, self).related_objects(
+            related_model, related_fields, objs)
+
+
+def get_deleted_objects_without_statuses(objs, request, admin_site):
+    """Same as django.contrib.admin.utils.get_deleted_objects but using
+    NestedObjectsWithoutStatuses."""
+    from django.contrib.admin.options import EMPTY_VALUE_STRING
+
+    try:
+        obj = objs[0]
+    except IndexError:
+        return [], {}, set(), []
+    else:
+        using = router.db_for_write(obj._meta.model)
+    collector = NestedObjectsWithoutStatuses(using=using, origin=objs)
+    collector.collect(objs)
+    perms_needed = set()
+
+    def format_callback(obj):
+        model = obj.__class__
+        opts = obj._meta
+        no_edit_link = '%s: %s' % (capfirst(opts.verbose_name), obj)
+        if admin_site.is_registered(model):
+            if not admin_site._registry[model].has_delete_permission(
+                    request, obj):
+                perms_needed.add(opts.verbose_name)
+            try:
+                admin_url = reverse(
+                    '%s:%s_%s_change' % (admin_site.name, opts.app_label,
+                                         opts.model_name),
+                    None, (quote(obj.pk),))
+            except NoReverseMatch:
+                return no_edit_link
+            obj_display = display_for_value(str(obj), EMPTY_VALUE_STRING)
+            return format_html('{}: <a href="{}">{}</a>',
+                               capfirst(opts.verbose_name), admin_url,
+                               obj_display)
+        return no_edit_link
+
+    to_delete = collector.nested(format_callback)
+    protected = [format_callback(obj) for obj in collector.protected]
+    model_count = {
+        model._meta.verbose_name_plural: len(objs)
+        for model, objs in collector.model_objs.items()
+    }
+    return to_delete, model_count, perms_needed, protected
 
 
 class AttachmentAdminInline(admin.TabularInline):
@@ -54,6 +122,26 @@ class BaseNewsletterAdmin(admin.ModelAdmin):
             del actions['make_ready_to_send']
             del actions['make_cancel_sending']
         return actions
+
+    def get_deleted_objects(self, objs, request):
+        """Keep the (potentially huge) set of ContactMailingStatus out of the
+        delete confirmation page: Django's NestedObjects collector loads every
+        related row in memory and renders its __str__ (2 queries each).
+        Show a single summary line with the count instead. The actual
+        deletion is unaffected: the ORM fast-deletes statuses with a single
+        DELETE query since nothing references them and they have no signals."""
+        deleted_objects, model_count, perms_needed, protected = \
+            get_deleted_objects_without_statuses(objs, request, self.admin_site)
+        status_count = ContactMailingStatus.objects.filter(
+            newsletter__in=objs).count()
+        if status_count:
+            opts = ContactMailingStatus._meta
+            deleted_objects.append(
+                _('%(count)d %(name)s (not listed)') % {
+                    'count': status_count,
+                    'name': opts.verbose_name_plural})
+            model_count[opts.verbose_name_plural] = status_count
+        return deleted_objects, model_count, perms_needed, protected
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == 'status' and \

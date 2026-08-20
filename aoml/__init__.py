@@ -1,5 +1,5 @@
 """aoml"""
-__version__ = '0.103'
+__version__ = '0.104'
 __license__ = 'BSD License'
 
 __author__ = 'AO'
